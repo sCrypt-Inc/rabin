@@ -1,6 +1,6 @@
 import random, hashlib, sys
 
-nrabin = 15753565749906943024598650504388380196939622993054800399756252827860713400916384067354641363773824240589014977387394649347593226203161534053278248342854806960948173752267429831437901390195386059347309623111477810876082456931881826560663102388955161231390929526401775895293347237869371774558939705751429L
+nrabin = 19357582850646234094870243936597881526816985728422822188584707758040190772124753795991976921183046753452348096483832662365979754187531420465198820567318721654423603010043133474548809492401416756882260459015012465339112151702054910778727561990594846430780059397082161240247533519862291928917720568887309L
 
 
 def bin2num(x):
@@ -66,7 +66,7 @@ def nextPrime_3(p):
       return nextPrime_3(p + 4)
   return p
   
-def h(x, n):
+def h(x):
   dx1 = hashlib.sha512(x).digest()
   dx2 = hashlib.sha512(dx1+x).digest()
   dx3 = hashlib.sha512(x+dx2).digest()
@@ -75,13 +75,13 @@ def h(x, n):
   res = 0
   for cx in (dx1+dx2+dx3+dx4+dx5):
     res = (res<<8) ^ ord(cx)
-  return res % n
+  return res
 
 
 def root(m, p, q):
   i = 0
   while True:
-    x = h(m, nrabin)
+    x = h(m) % nrabin
     sig =   pow(p,q-2,q) * p * pow(x,(q+1)/4,q) 
     sig = ( pow(q,p-2,p) * q * pow(x,(p+1)/4,p) + sig ) % (nrabin) 
     if (sig * sig) % nrabin == x:
@@ -125,7 +125,7 @@ def random1024():
 
 def hF(fname, padding):
   f = open(fname,'r')
-  return h(f.read() + " " * padding, nrabin)
+  return h(f.read() + " " * padding) % nrabin
 
 def sF(fnam):
   p = readNumber("p")
@@ -142,7 +142,7 @@ def vF(fname, padding, s):
 print "\n\n rabin signature - copyright Scheerer Software 2018 - all rights reserved\n\n"
 print "First parameter is V (Verify) or S (Sign)\n\n"
 print "\n\n verify signature (2 parameters):"
-print "   > python rabin.py V <filename> <filename> <padding> <digital signature> "
+print "   > python rabin.py V <filename> <padding> <digital signature> "
 
 print " create signature S (2 parameter):"
 print "   > python rabin.py S <filename> \n\n"
@@ -159,8 +159,8 @@ if len(sys.argv) == 3 and sys.argv[1] == "S":
      
 if len(sys.argv) == 3 and sys.argv[1] == "G":
   print " generate primes ... "
-  p = nextPrime( h(sys.argv[2], 2**1000) % (2**501 + 1) )  
-  q = nextPrime( h(sys.argv[2] + '0', 2**1000) % (2**501 + 1) )  
+  p = nextPrime( h(sys.argv[2]) % (2**501 + 1) )  
+  q = nextPrime( h(sys.argv[2] + '0') % (2**501 + 1) )  
   writeNumber(p, 'p')                     
   writeNumber(q, 'q')     
   print "nrabin = ", (p * q)
