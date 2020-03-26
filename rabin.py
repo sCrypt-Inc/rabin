@@ -65,19 +65,22 @@ def nextPrime_3(p):
   if (pow(17,p-1,p) != 1):
       return nextPrime_3(p + 4)
   return p
-  
+
+# x: bytes
+# return: int
 def h(x):
-  dx1 = hashlib.sha512(x).digest()
-  dx2 = hashlib.sha512(dx1+x).digest()
-  dx3 = hashlib.sha512(x+dx2).digest()
-  dx4 = hashlib.sha512(x+dx3).digest()
-  dx5 = hashlib.sha512(x+dx4).digest()
-  res = 0
-  for cx in (dx1+dx2+dx3+dx4+dx5):
-    res = (res<<8) ^ ord(cx)
-  return res
+  return int.from_bytes(hashlib.sha256(x), "big")
+  # dx1 = hashlib.sha512(x).digest()
+  # dx2 = hashlib.sha512(dx1+x).digest()
+  # dx3 = hashlib.sha512(x+dx2).digest()
+  # dx4 = hashlib.sha512(x+dx3).digest()
+  # dx5 = hashlib.sha512(x+dx4).digest()
+  # res = 0
+  # for cx in (dx1+dx2+dx3+dx4+dx5):
+  #   res = (res<<8) ^ ord(cx)
+  # return res
 
-
+# m: bytes
 def root(m, p, q):
   i = 0
   while True:
@@ -86,9 +89,9 @@ def root(m, p, q):
     sig = ( pow(q,p-2,p) * q * pow(x,(p+1)/4,p) + sig ) % (nrabin) 
     if (sig * sig) % nrabin == x:
       break
-    m = m + ' '
+    m = m + bytes.fromhex("00")
     i = i + 1
-  print "padding: " + str(i)
+  print "paddingnum: " + str(i)
   return sig
 
 def writeNumber(number, fnam):
@@ -123,29 +126,24 @@ def random512():
 def random1024():
   return random512() * random512()
 
-def hF(fname, padding):
-  f = open(fname,'r')
-  return h(f.read() + " " * padding) % nrabin
+def hF(m, paddingnum):
+  return h(m + bytes.fromhex("00") * paddingnum) % nrabin
 
-def sF(fnam):
+def sF(hexmsg):
   p = readNumber("p")
   q = readNumber("q")
+  return root(hexmsg, p, q)
 
-  f = open(fnam,'r')
-  s = root (f.read(), p, q)
-  f.close()
-  return s
-
-def vF(fname, padding, s):
-  return hF(fname, padding) == (s * s) % nrabin
+def vF(hexmsg, paddingnum, s):
+  return hF(bytes.fromhex(hexmsg), paddingnum) == (s * s) % nrabin
  
 print "\n\n rabin signature - copyright Scheerer Software 2018 - all rights reserved\n\n"
 print "First parameter is V (Verify) or S (Sign)\n\n"
 print "\n\n verify signature (2 parameters):"
-print "   > python rabin.py V <filename> <padding> <digital signature> "
+print "   > python rabin.py V <hexmessage> <paddingnum> <digital signature> "
 
 print " create signature S (2 parameter):"
-print "   > python rabin.py S <filename> \n\n"
+print "   > python rabin.py S <hexmessage> \n\n"
 
 print " number of parameters is " + str(len(sys.argv)-1)
 print " "
@@ -159,8 +157,8 @@ if len(sys.argv) == 3 and sys.argv[1] == "S":
      
 if len(sys.argv) == 3 and sys.argv[1] == "G":
   print " generate primes ... "
-  p = nextPrime( h(sys.argv[2]) % (2**501 + 1) )  
-  q = nextPrime( h(sys.argv[2] + '0') % (2**501 + 1) )  
+  p = nextPrime( h(bytes.fromhex(sys.argv[2])) % (2**501 + 1) )  
+  q = nextPrime( h(bytes.fromhex(sys.argv[2] + '00')) % (2**501 + 1) )  
   writeNumber(p, 'p')                     
   writeNumber(q, 'q')     
   print "nrabin = ", (p * q)
