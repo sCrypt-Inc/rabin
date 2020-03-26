@@ -79,17 +79,16 @@ def h(x, n):
 
 
 def root(m, p, q):
+  i = 0
   while True:
     x = h(m, nrabin)
     sig =   pow(p,q-2,q) * p * pow(x,(q+1)/4,q) 
     sig = ( pow(q,p-2,p) * q * pow(x,(p+1)/4,p) + sig ) % (nrabin) 
     if (sig * sig) % nrabin == x:
-      print "write extended message to file m "
-      f = open('m','w')
-      f.write(m)
-      f.close()
       break
     m = m + ' '
+    i = i + 1
+  print "padding: " + str(i)
   return sig
 
 def writeNumber(number, fnam):
@@ -124,9 +123,9 @@ def random512():
 def random1024():
   return random512() * random512()
 
-def hF():
-  f = open("m",'r')
-  return h(f.read(), nrabin)
+def hF(fname, padding):
+  f = open(fname,'r')
+  return h(f.read() + " " * padding, nrabin)
 
 def sF(fnam):
   p = readNumber("p")
@@ -137,13 +136,13 @@ def sF(fnam):
   f.close()
   return s
 
-def vF(s):
-  return hF() == (s * s) % nrabin
+def vF(fname, padding, s):
+  return hF(fname, padding) == (s * s) % nrabin
  
 print "\n\n rabin signature - copyright Scheerer Software 2018 - all rights reserved\n\n"
 print "First parameter is V (Verify) or S (Sign)\n\n"
 print "\n\n verify signature (2 parameters):"
-print "   > python rabin.py V <filename> <digital signature> "
+print "   > python rabin.py V <filename> <filename> <padding> <digital signature> "
 
 print " create signature S (2 parameter):"
 print "   > python rabin.py S <filename> \n\n"
@@ -152,8 +151,8 @@ print " number of parameters is " + str(len(sys.argv)-1)
 print " "
 print " "
 
-if len(sys.argv) == 3 and sys.argv[1] == "V":
-  print "result of verification: " + str(vF(hextxt2num(sys.argv[2])))
+if len(sys.argv) == 5 and sys.argv[1] == "V":
+  print "result of verification: " + str(vF(sys.argv[2], int(sys.argv[3]), hextxt2num(sys.argv[4])))
 
 if len(sys.argv) == 3 and sys.argv[1] == "S":
   print(" digital signature:\n " + num2hextxt(sF(sys.argv[2])))
