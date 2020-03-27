@@ -72,12 +72,15 @@ def vF(hexmsg, paddingnum, s):
   return hF(bytes.fromhex(hexmsg), paddingnum) == (s * s) % nrabin
  
 print("\n\n rabin signature - copyright Scheerer Software 2018 - all rights reserved\n\n")
-print("First parameter is V (Verify) or S (Sign)\n\n")
+print("First parameter is V (Verify) or S (Sign) or G (Generate)\n\n")
 print("\n\n verify signature (2 parameters):")
 print("   > python rabin.py V <hexmessage> <paddingnum> <digital signature> ")
 
 print(" create signature S (2 parameter):")
 print("   > python rabin.py S <hexmessage> \n\n")
+
+print(" generate key pair G (2 parameter):")
+print("   > python rabin.py G <hexseed> \n\n")
 
 print(" number of parameters is " + str(len(sys.argv)-1))
 print(" ")
