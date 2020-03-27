@@ -31,7 +31,7 @@ def nextPrime_3(p):
 # x: bytes
 # return: int
 def h(x):
-  return int(hashlib.sha256(x).hexdigest(), 16)
+  return int.from_bytes(hashlib.sha256(x).digest(), 'little')
 
 # m: bytes
 def root(m, p, q):
