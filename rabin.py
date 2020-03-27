@@ -71,6 +71,7 @@ def sF(hexmsg):
 def vF(hexmsg, paddingnum, s):
   return hF(bytes.fromhex(hexmsg), paddingnum) == (s * s) % nrabin
  
+print("\n\n rabin signature - sCrypt Inc 2020 adapted from Scheerer - all rights reserved\n\n")
 print("\n\n rabin signature - copyright Scheerer Software 2018 - all rights reserved\n\n")
 print("First parameter is V (Verify) or S (Sign) or G (Generate)\n\n")
 print("\n\n verify signature (2 parameters):")
