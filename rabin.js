@@ -1,5 +1,5 @@
 const { bsv } = require('scrypttest');
-const bigInt = require("big-integer");
+const {toBigIntBE, toBigIntLE, toBufferBE, toBufferLE} = require('bigint-buffer');
 
 const nrabin = 0x15525796ddab817a3c54c4bea4ef564f090c5909b36818c1c13b9e674cf524aa3387a408f9b63c0d88d11a76471f9f2c3f29c47a637aa60bf5e120d1f5a65221;
 
@@ -48,15 +48,8 @@ function powerMod(base, exponent, modulus) {
     }
     return result;
 }
-
-function convertBufferToIntArray(buffer){
-    intArray = [];
-    for (const byteValue of buffer) {
-        //console.log(byteValue);
-        intArray.push(byteValue);
-    }
-    return intArray;
-}
+// Get a BigInt from a buffer in big endian format
+toBigIntBE(Buffer.from('deadbeef', 'hex'));
 
 function hashBytes(bytes){
     //console.log(bytes);
@@ -69,12 +62,8 @@ function hashBytes(bytes){
     var hr = bsv.crypto.Hash.sha256(hBytes.slice(idx,hBytes.byteLength));
     //console.log(hr);
     var concatenated = Buffer.concat([hl,hr]);
-    console.log(concatenated);
-    //https://github.com/peterolson/BigInteger.js/issues/104
-    var bufferIntValues = convertBufferToIntArray(concatenated);
-    var isNegative = false;//https://stackoverflow.com/questions/33629416/how-to-tell-if-hex-value-is-negative
-    var result = bigInt.fromArray(bufferIntValues, base = 256, isNegative);
-    console.log("From BYTES: "+result.value);
+    var result = toBigIntLE(concatenated);
+    //console.log("From BYTES: "+result);
     return result;
 }
 
