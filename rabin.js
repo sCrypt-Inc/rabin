@@ -112,7 +112,8 @@ function generateKeyPartsAndRabinValue(seed){
         throw("Error: Seed %s should be a hexadecimal string with or without '0x' at the beginning.",seed);
     // Remove 0x from seed if necessary
     seed = seed.replace('0x','');
-    console.log("Generating primes from seed: "+seed);
+
+    console.log("Generating key from seed: "+seed);
     let p = getPrimeNumber(hashBytes(Buffer.from(seed, 'hex')) % ((2n**501n) + 1n));
     let q = getPrimeNumber(hashBytes(Buffer.from(seed+'00', 'hex')) % ((2n**501n) + 1n));
     return {"p":p,"q":q,"nrabin":p*q};
@@ -139,24 +140,62 @@ function root(dataBuffer,p,q,nrabin){
 function signData(dataHex,p,q,nrabin){
     // Check if data is valid hex
     if(!checkIfValidHex(dataHex))
-        throw ("Error: Message %s should be a hexadecimal string with or without '0x' at the beginning.",messageHex);
+        throw ("Error: Data %s should be a hexadecimal string with or without '0x' at the beginning.",messageHex);
     // Remove 0x from data if necessary
     dataHex = dataHex.replace('0x','');
     return root(Buffer.from(dataHex,'hex'),p,q,nrabin);
 }
+  
+function verifySignature(dataHex,paddingByteCount,signatureHex,nRabinHex){
+    // Check if data is valid hex
+    if(!checkIfValidHex(dataHex))
+        throw ("Error: Data %s should be a hexadecimal string with or without '0x' at the beginning.",messageHex);
+    // Remove 0x from data if necessary
+    dataHex = dataHex.replace('0x','');    // Check if data is valid hex
+    if(!checkIfValidHex(signatureHex))
+        throw ("Error: Signature %s should be a hexadecimal string with or without '0x' at the beginning.",messageHex);
+    // Remove 0x from signature if necessary
+    signatureHex = signatureHex.replace('0x','');
+    if(!checkIfValidHex(nRabinHex))
+        throw ("Error: nRabin %s should be a hexadecimal string with or without '0x' at the beginning.",messageHex);
+    // Remove 0x from signature if necessary
+    nRabinHex = nRabinHex.replace('0x','');
 
-function verifySignature(dataHex,paddingByteCount,signatureHex){
-    return true;
+    let dataBuffer = Buffer.from(dataHex,'hex');
+    let paddingBuffer = Buffer.from('00'.repeat(paddingByteCount),'hex');
+    let paddedDataBuffer = Buffer.concat([dataBuffer,paddingBuffer]);
+    let dataHash = hashBytes(paddedDataBuffer);
+    let nRabinBigInt = BigInt(hexStringToDecimal(nRabinHex));
+    let hashMod = dataHash % nRabinBigInt;
+
+    return hashMod === (BigInt(hexStringToDecimal(signatureHex))**2n % nRabinBigInt);
 }
 
-let keyRabinValues = generateKeyPartsAndRabinValue('0x01');
+let randInt = function(max){
+    return Math.floor(Math.random() * max);
+}
+
+//  random hex string generator
+let randHex = function(len) {
+    let maxlen = 8,
+        min = Math.pow(16,Math.min(len,maxlen)-1) 
+        max = Math.pow(16,Math.min(len,maxlen)) - 1,
+        n   = Math.floor( Math.random() * (max-min+1) ) + min,
+        r   = n.toString(16);
+    while ( r.length < len ) {
+        r = r + randHex( len - maxlen );
+    }
+    return r;
+}
+
+let keyRabinValues = generateKeyPartsAndRabinValue(randHex(randInt(100)));
 console.log("nRabin = 0x"+decimalToHexString(keyRabinValues.nrabin));
 
-let dataHex = Buffer.from("msg").toString('hex');
-console.log("dataHex: "+dataHex);
+let dataHex = Buffer.from(randHex(randInt(100))).toString('hex');
+console.log("dataHex = 0x"+dataHex);
 let signatureResult = signData(dataHex,keyRabinValues.p,keyRabinValues.q,keyRabinValues.nrabin);
 console.log("Signature = 0x"+decimalToHexString(signatureResult.signature));
 console.log("Padding Bytes = "+signatureResult.paddingByteCount);
 
-let result = verifySignature(dataHex,signatureResult.paddingByteCount,decimalToHexString(signatureResult.signature));
-console.log("Signature Verified: = "+result);
+let result = verifySignature(dataHex,signatureResult.paddingByteCount,decimalToHexString(signatureResult.signature),decimalToHexString(keyRabinValues.nrabin));
+console.log("Signature Verified = "+result);
