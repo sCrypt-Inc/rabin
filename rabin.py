@@ -33,19 +33,11 @@ def nextPrime_3(p):
 # x: bytes
 # return: int
 def h(x):
-  #print(x)
   hx = hashlib.sha256(x).digest()
-  #print(hx.hex())
   idx = len(hx)//2
-  #print(idx)
   hl = hashlib.sha256(hx[:idx]).digest()
-  #print(hl.hex())
   hr = hashlib.sha256(hx[idx:]).digest()
-  #print(hr.hex())
-  concatenated = hl + hr
-  print("Hex: "+concatenated.hex())
-  result = int.from_bytes(concatenated, 'little')
-  print("From BYTES: "+str(result))
+  result = int.from_bytes(hl + hr, 'little')
   return result
 
 # m: bytes
@@ -108,6 +100,4 @@ if len(sys.argv) == 3 and sys.argv[1] == "G":
   print(" generate primes ... ")
   p = nextPrime( h(bytes.fromhex(sys.argv[2])) % (2**501 + 1) )  
   q = nextPrime( h(bytes.fromhex(sys.argv[2] + '00')) % (2**501 + 1) )  
-  #writeNumber(p, 'p')                     
-  #writeNumber(q, 'q')     
-  print("\nnrabin = ", hex(p * q))
+  print("nrabin = ", hex(p * q))
