@@ -109,7 +109,12 @@ function getPrimeNumber(p) {
     return calculateNextPrime(p);
 }
 
-function generateKeyPartsAndRabinValue(seed) {
+/**
+ * Generates a key p and q values with a hexadecimal seed
+ * @param {String} seed Hexadecimal seed string value
+ * @returns {JSON} {"p": p,"q": q} The key's p and q values
+ */
+function generateKeyFromHexStringSeed(seed) {
     // Check if seed is valid hex
     if (!checkIfValidHex(seed))
         throw ("Error: Seed %s should be a hexadecimal string with or without '0x' at the beginning.", seed);
@@ -121,21 +126,32 @@ function generateKeyPartsAndRabinValue(seed) {
     let q = getPrimeNumber(hashBytes(Buffer.from(seed + '00', 'hex')) % ((2n ** 501n) + 1n));
     return {
         "p": p,
-        "q": q,
-        "nrabin": p * q
+        "q": q
     };
+}
+
+/**
+ * Returns the product of p and q (the rabin value)
+ * @param {BigInt|Number} p Key 'p' value
+ * @param {BigInt|Number} q Key 'q' value
+ * @returns {BigInt} nRabin: The key's rabin value
+ */
+function calculateRabinValueFromKeyParts(p,q){
+    if((typeof(p) !== 'bigint' && isNaN(p)) || (typeof(q) !== 'bigint' && isNaN(q)))
+        throw("Error: Key parts should be numbers.")
+    return BigInt(p) * BigInt(q);
 }
 
 const paddingBuffer = Buffer.from('00', 'hex');
 
-function root(dataBuffer, p, q, nrabin) {
+function root(dataBuffer, p, q, nRabin) {
     let sig, x, paddingByteCount = 0;
     while (true) {
         let h1 = hashBytes(dataBuffer);
-        x = hashBytes(dataBuffer) % nrabin;
+        x = hashBytes(dataBuffer) % nRabin;
         sig = powerMod(p, q - 2n, q) * p * powerMod(x, (q + 1n) / 4n, q);
-        sig = (powerMod(q, p - 2n, p) * q * powerMod(x, (p + 1n) / 4n, p) + sig) % (nrabin);
-        if (((sig * sig) % nrabin) === x) {
+        sig = (powerMod(q, p - 2n, p) * q * powerMod(x, (p + 1n) / 4n, p) + sig) % (nRabin);
+        if (((sig * sig) % nRabin) === x) {
             break;
         }
         dataBuffer = Buffer.concat([dataBuffer, paddingBuffer]);
@@ -147,37 +163,53 @@ function root(dataBuffer, p, q, nrabin) {
     };
 }
 
-function signData(dataHex, p, q, nrabin) {
+/**
+ * Creates a Rabin signature of hexadecimal data with a given key's values
+ * @param {String} dataHexString Hexadecimal data string value
+ * @param {BigInt} p Key 'p' value
+ * @param {BigInt} q Key 'q' value
+ * @param {BigInt} nRabin Key nRabin value
+ * @returns {JSON} {"signature": String, "paddingByteCount": Number} Signature and padding count
+ */
+function createRabinSignature(dataHexString, p, q, nRabin) {
     // Check if data is valid hex
-    if (!checkIfValidHex(dataHex))
+    if (!checkIfValidHex(dataHexString))
         throw ("Error: Data %s should be a hexadecimal string with or without '0x' at the beginning.", messageHex);
     // Remove 0x from data if necessary
-    dataHex = dataHex.replace('0x', '');
-    return root(Buffer.from(dataHex, 'hex'), p, q, nrabin);
+    dataHexString = dataHexString.replace('0x', '');
+    return root(Buffer.from(dataHexString, 'hex'), p, q, nRabin);
 }
 
-function verifySignature(dataHex, paddingByteCount, signatureHex, nRabinHex) {
+/**
+ * Verifies a Rabin signature of hexadecimal data with given padding count, signature and key nRabin value
+ * @param {String} dataHexString Hexadecimal data string value
+ * @param {Number} paddingByteCount Padding byte count
+ * @param {String} signatureHexString Rabin signature string
+ * @param {String} nRabinHexString Key nRabin value as hexadecimal string format
+ * @returns {Boolean} If signature is valid or not
+ */
+function verifyRabinSignature(dataHexString, paddingByteCount, signatureHexString, nRabinHexString) {
     // Check if data is valid hex
-    if (!checkIfValidHex(dataHex))
+    if (!checkIfValidHex(dataHexString))
         throw ("Error: Data %s should be a hexadecimal string with or without '0x' at the beginning.", messageHex);
     // Remove 0x from data if necessary
-    dataHex = dataHex.replace('0x', ''); // Check if data is valid hex
-    if (!checkIfValidHex(signatureHex))
+    dataHexString = dataHexString.replace('0x', ''); // Check if data is valid hex
+    if (!checkIfValidHex(signatureHexString))
         throw ("Error: Signature %s should be a hexadecimal string with or without '0x' at the beginning.", messageHex);
     // Remove 0x from signature if necessary
-    signatureHex = signatureHex.replace('0x', '');
-    if (!checkIfValidHex(nRabinHex))
+    signatureHexString = signatureHexString.replace('0x', '');
+    if (!checkIfValidHex(nRabinHexString))
         throw ("Error: nRabin %s should be a hexadecimal string with or without '0x' at the beginning.", messageHex);
     // Remove 0x from signature if necessary
-    nRabinHex = nRabinHex.replace('0x', '');
+    nRabinHexString = nRabinHexString.replace('0x', '');
 
-    let dataBuffer = Buffer.from(dataHex, 'hex');
+    let dataBuffer = Buffer.from(dataHexString, 'hex');
     let paddingBuffer = Buffer.from('00'.repeat(paddingByteCount), 'hex');
     let paddedDataBuffer = Buffer.concat([dataBuffer, paddingBuffer]);
     let dataHash = hashBytes(paddedDataBuffer);
-    let nRabinBigInt = BigInt(hexStringToDecimal(nRabinHex));
+    let nRabinBigInt = BigInt(hexStringToDecimal(nRabinHexString));
     let hashMod = dataHash % nRabinBigInt;
-    return hashMod === (BigInt(hexStringToDecimal(signatureHex)) ** 2n % nRabinBigInt);
+    return hashMod === (BigInt(hexStringToDecimal(signatureHexString)) ** 2n % nRabinBigInt);
 }
 
 let randInt = function(max) {
@@ -197,14 +229,22 @@ let randHex = function(len) {
     return r;
 }
 
-let keyRabinValues = generateKeyPartsAndRabinValue(randHex(randInt(100)));
-console.log("nRabin = 0x" + decimalToHexString(keyRabinValues.nrabin));
+let key = generateKeyFromHexStringSeed(randHex(randInt(100)));
+let nRabin = calculateRabinValueFromKeyParts(key.p,key.q);
+console.log("nRabin = 0x" + decimalToHexString(nRabin));
 
-let dataHex = Buffer.from(randHex(randInt(100))).toString('hex');
-console.log("dataHex = 0x" + dataHex);
-let signatureResult = signData(dataHex, keyRabinValues.p, keyRabinValues.q, keyRabinValues.nrabin);
+let dataHexString = Buffer.from(randHex(randInt(100))).toString('hex');
+console.log("dataHexString = 0x" + dataHexString);
+let signatureResult = createRabinSignature(dataHexString, key.p, key.q, nRabin);
 console.log("Signature = 0x" + decimalToHexString(signatureResult.signature));
 console.log("Padding Bytes = " + signatureResult.paddingByteCount);
 
-let result = verifySignature(dataHex, signatureResult.paddingByteCount, decimalToHexString(signatureResult.signature), decimalToHexString(keyRabinValues.nrabin));
+let result = verifyRabinSignature(dataHexString, signatureResult.paddingByteCount, decimalToHexString(signatureResult.signature), decimalToHexString(nRabin));
 console.log("Signature Verified = " + result);
+
+module.exports = {
+    generateKeyFromHexStringSeed,
+    calculateRabinValueFromKeyParts,
+    createRabinSignature,
+    verifyRabinSignature
+}
