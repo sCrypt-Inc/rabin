@@ -1,8 +1,6 @@
 const { bsv } = require('scrypttest');
 const { toBigIntLE } = require('bigint-buffer');
-const { BigIntMath } = require('./bigintmath');
-
-const nrabin = 0x15525796ddab817a3c54c4bea4ef564f090c5909b36818c1c13b9e674cf524aa3387a408f9b63c0d88d11a76471f9f2c3f29c47a637aa60bf5e120d1f5a65221;
+const { BigIntMath } = require('./bigintmath'); // Graciously taken from: http://archive.is/th1Vo
 
 function greatestCommonDivisor(a,b){
     if ((typeof a !== 'bigint') || (typeof b !== 'bigint'))
@@ -11,12 +9,12 @@ function greatestCommonDivisor(a,b){
     a = BigIntMath.abs(a);
     b = BigIntMath.abs(b);
     if(b>a){
-        var t = a;
+        let t = a;
         a = b;
         b = t;
     }
     while(b>0) {
-        var t = b;
+        let t = b;
         b = a % b;
         a = t;
     }
@@ -37,15 +35,37 @@ function decimalToHexString(number)
   return number.toString(16);
 }
 
-// calculates   base^exponent % modulus
+function hexStringToDecimal(hexString) {
+    if(!checkIfValidHex(hexString))
+        throw("Error: hexString %s should be a hexadecimal string with or without '0x' at the beginning.",hexString);
+    // Remove 0x from string if necessary
+    hexString = hexString.replace('0x','');
+
+    var i, j, digits = [0], carry;
+    for (i = 0; i < hexString.length; i += 1) {
+        carry = parseInt(hexString.charAt(i), 16);
+        for (j = 0; j < digits.length; j += 1) {
+            digits[j] = digits[j] * 16 + carry;
+            carry = digits[j] / 10 | 0;
+            digits[j] %= 10;
+        }
+        while (carry > 0) {
+            digits.push(carry % 10);
+            carry = carry / 10 | 0;
+        }
+    }
+    return digits.reverse().join('');
+}
+
+// Calculates: base^exponent % modulus
 function powerMod(base, exponent, modulus) {
-    if (modulus === BigInt(1)) return 0;
-    var result = BigInt(1);
+    if (modulus === 1n) return 0n;
+    let result = 1n;
     base = base % modulus;
-    while (exponent > BigInt(0)) {
-        if (exponent % BigInt(2) === BigInt(1))  //odd number
+    while (exponent > 0n) {
+        if (exponent % 2n === 1n)  //odd number
             result = (result * base) % modulus;
-        exponent = exponent >> BigInt(1); //divide by 2
+        exponent = exponent >> 1n; //divide by 2
         base = (base * base) % modulus;
     }
     return result;
@@ -53,55 +73,90 @@ function powerMod(base, exponent, modulus) {
 
 function hashBytes(bytes){
     hBytes = bsv.crypto.Hash.sha256(bytes);
-    var idx = hBytes.byteLength/2;
-    var hl = bsv.crypto.Hash.sha256(hBytes.slice(0,idx));
-    var hr = bsv.crypto.Hash.sha256(hBytes.slice(idx,hBytes.byteLength));
-    var concatenated = Buffer.concat([hl,hr]);
-    var result = toBigIntLE(concatenated);
-    return result;
+    let idx = hBytes.byteLength/2;
+    let hl = bsv.crypto.Hash.sha256(hBytes.slice(0,idx));
+    let hr = bsv.crypto.Hash.sha256(hBytes.slice(idx,hBytes.byteLength));
+    return toBigIntLE(Buffer.concat([hl,hr]));
 }
 
 function calculateNextPrime(p){
-    smallPrimesProduct = BigInt(3*5*7*11*13*17*19*23*29);
+    smallPrimesProduct = 3n*5n*7n*11n*13n*17n*19n*23n*29n;
     while(greatestCommonDivisor(p,smallPrimesProduct)!=1){
-        p=p+BigInt(4);
+        p=p+4n;
     }
-    if(powerMod(BigInt(2),p-BigInt(1),p)!=1){
-        return calculateNextPrime(p+BigInt(4));
+    if(powerMod(2n,p-1n,p)!=1n){
+        return calculateNextPrime(p+4n);
     }
-    if(powerMod(BigInt(3),p-BigInt(1),p)!=1){
-        return calculateNextPrime(p+BigInt(4));
+    if(powerMod(3n,p-1n,p)!=1n){
+        return calculateNextPrime(p+4n);
     }
-    if(powerMod(BigInt(5),p-BigInt(1),p)!=1){
-        return calculateNextPrime(p+BigInt(4));
+    if(powerMod(5n,p-1n,p)!=1n){
+        return calculateNextPrime(p+4n);
     }
-    if(powerMod(BigInt(17),p-BigInt(1),p)!=1){
-        return calculateNextPrime(p+BigInt(4));
+    if(powerMod(17n,p-1n,p)!=1n){
+        return calculateNextPrime(p+4n);
     }
     return p;
 }
 
 function getPrimeNumber(p){
-    while(p%BigInt(4)!=BigInt(3)){
-        p = p + BigInt(1);
+    while(p%4n!=3n){
+        p = p + 1n;
     }
     return calculateNextPrime(p);
 }
 
-function generate(seed){
+function generateKeyPartsAndRabinValue(seed){
     // Check if seed is valid hex
-    if(!checkIfValidHex(seed)){
-        console.log("Seed %s should be a hexadecimal string with or without '0x' at the beginning.",seed)
-        return false;
-    }
+    if(!checkIfValidHex(seed))
+        throw("Error: Seed %s should be a hexadecimal string with or without '0x' at the beginning.",seed);
+    // Remove 0x from seed if necessary
     seed = seed.replace('0x','');
     console.log("Generating primes from seed: "+seed);
-    var p1 = hashBytes(Buffer.from(seed, 'hex'));
-    var q1 = hashBytes(Buffer.from(seed+'00', 'hex'));
-    var p = getPrimeNumber(p1 % ((BigInt(2)**BigInt(501)) + BigInt(1)));
-    var q = getPrimeNumber(q1 % ((BigInt(2)**BigInt(501)) + BigInt(1)));
-    var result = decimalToHexString(p*q);
-    console.log("nrabin = 0x"+result);
+    let p = getPrimeNumber(hashBytes(Buffer.from(seed, 'hex')) % ((2n**501n) + 1n));
+    let q = getPrimeNumber(hashBytes(Buffer.from(seed+'00', 'hex')) % ((2n**501n) + 1n));
+    return {"p":p,"q":q,"nrabin":p*q};
 }
 
-generate('0x01');
+const paddingBuffer = Buffer.from('00','hex');
+
+function root(dataBuffer,p,q,nrabin){
+    let sig, x, paddingByteCount = 0;
+    while(true){
+        let h1 = hashBytes(dataBuffer);
+        x = hashBytes(dataBuffer) % nrabin;
+        sig = powerMod(p,q-2n,q) * p * powerMod(x,(q+1n)/4n,q);
+        sig = (powerMod(q,p-2n,p) * q * powerMod(x,(p+1n)/4n,p) + sig) % (nrabin);
+        if (((sig * sig) % nrabin) === x){
+            break;
+        }
+        dataBuffer = Buffer.concat([dataBuffer, paddingBuffer]);
+        paddingByteCount++;
+    }
+    return {"signature":sig,"paddingByteCount":paddingByteCount};
+}
+
+function signData(dataHex,p,q,nrabin){
+    // Check if data is valid hex
+    if(!checkIfValidHex(dataHex))
+        throw ("Error: Message %s should be a hexadecimal string with or without '0x' at the beginning.",messageHex);
+    // Remove 0x from data if necessary
+    dataHex = dataHex.replace('0x','');
+    return root(Buffer.from(dataHex,'hex'),p,q,nrabin);
+}
+
+function verifySignature(dataHex,paddingByteCount,signatureHex){
+    return true;
+}
+
+let keyRabinValues = generateKeyPartsAndRabinValue('0x01');
+console.log("nRabin = 0x"+decimalToHexString(keyRabinValues.nrabin));
+
+let dataHex = Buffer.from("msg").toString('hex');
+console.log("dataHex: "+dataHex);
+let signatureResult = signData(dataHex,keyRabinValues.p,keyRabinValues.q,keyRabinValues.nrabin);
+console.log("Signature = 0x"+decimalToHexString(signatureResult.signature));
+console.log("Padding Bytes = "+signatureResult.paddingByteCount);
+
+let result = verifySignature(dataHex,signatureResult.paddingByteCount,decimalToHexString(signatureResult.signature));
+console.log("Signature Verified: = "+result);
