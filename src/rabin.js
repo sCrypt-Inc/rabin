@@ -30,13 +30,6 @@ function checkIfValidHex(hexString) {
     return re.test(hexString);
 }
 
-function decimalToHexString(number) {
-    if (number < 0) {
-        number = 0xFFFFFFFF + number + 1;
-    }
-    return number.toString(16);
-}
-
 function hexStringToDecimal(hexString) {
     if (!checkIfValidHex(hexString))
         throw ("Error: hexString %s should be a hexadecimal string with or without '0x' at the beginning.", hexString);
@@ -111,7 +104,7 @@ function getPrimeNumber(p) {
 
 /**
  * Generates a key p and q values with a hexadecimal seed
- * @param {String} seed Hexadecimal seed string value
+ * @param {String} seed Seed hexadecimal string value
  * @returns {JSON} {"p": p,"q": q} The key's p and q values
  */
 function generateKeyFromHexStringSeed(seed) {
@@ -184,8 +177,8 @@ function createRabinSignature(dataHexString, p, q, nRabin) {
  * Verifies a Rabin signature of hexadecimal data with given padding count, signature and key nRabin value
  * @param {String} dataHexString Hexadecimal data string value
  * @param {Number} paddingByteCount Padding byte count
- * @param {String} signatureHexString Rabin signature string
- * @param {String} nRabinHexString Key nRabin value as hexadecimal string format
+ * @param {String} signatureHexString Rabin signature hexadecimal string
+ * @param {String} nRabinHexString Key nRabin value hexadecimal string
  * @returns {Boolean} If signature is valid or not
  */
 function verifyRabinSignature(dataHexString, paddingByteCount, signatureHexString, nRabinHexString) {
@@ -211,36 +204,6 @@ function verifyRabinSignature(dataHexString, paddingByteCount, signatureHexStrin
     let hashMod = dataHash % nRabinBigInt;
     return hashMod === (BigInt(hexStringToDecimal(signatureHexString)) ** 2n % nRabinBigInt);
 }
-
-let randInt = function(max) {
-    return Math.floor(Math.random() * max);
-}
-
-//  random hex string generator
-let randHex = function(len) {
-    let maxlen = 8,
-        min = Math.pow(16, Math.min(len, maxlen) - 1),
-        max = Math.pow(16, Math.min(len, maxlen)) - 1,
-        n = Math.floor(Math.random() * (max - min + 1)) + min,
-        r = n.toString(16);
-    while (r.length < len) {
-        r = r + randHex(len - maxlen);
-    }
-    return r;
-}
-
-let key = generateKeyFromHexStringSeed(randHex(randInt(100)));
-let nRabin = calculateRabinValueFromKeyParts(key.p,key.q);
-console.log("nRabin = 0x" + decimalToHexString(nRabin));
-
-let dataHexString = Buffer.from(randHex(randInt(100))).toString('hex');
-console.log("dataHexString = 0x" + dataHexString);
-let signatureResult = createRabinSignature(dataHexString, key.p, key.q, nRabin);
-console.log("Signature = 0x" + decimalToHexString(signatureResult.signature));
-console.log("Padding Bytes = " + signatureResult.paddingByteCount);
-
-let result = verifyRabinSignature(dataHexString, signatureResult.paddingByteCount, decimalToHexString(signatureResult.signature), decimalToHexString(nRabin));
-console.log("Signature Verified = " + result);
 
 module.exports = {
     generateKeyFromHexStringSeed,
