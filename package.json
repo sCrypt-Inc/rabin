@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/freddiehonohan/rabin.git"
+    "url": "git+https://github.com/scrypt-sv/rabin.git"
   },
   "keywords": [
     "rabin",
@@ -21,9 +21,9 @@
   "author": "Xiaohui Liu & Freddie Honohan",
   "license": "SEE LICENSE IN LICENSE",
   "bugs": {
-    "url": "https://github.com/freddiehonohan/rabin/issues"
+    "url": "https://github.com/scrypt-sv/rabin/issues"
   },
-  "homepage": "https://github.com/freddiehonohan/rabin#readme",
+  "homepage": "https://github.com/scrypt-sv/rabin#readme",
   "dependencies": {
     "bigint-buffer": "^1.1.5",
     "chai": "^4.2.0",
