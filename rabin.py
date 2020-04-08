@@ -15,9 +15,11 @@ def nextPrime(p):
  return nextPrime_3(p)
   
 def nextPrime_3(p):
+  #print(p)
   m_ = 3*5*7*11*13*17*19*23*29
+  #print(m_)
   while gcd(p,m_) != 1:
-    p = p + 4 
+    p = p + 4
   if (pow(2,p-1,p) != 1):
       return nextPrime_3(p + 4)
   if (pow(3,p-1,p) != 1):
@@ -35,7 +37,8 @@ def h(x):
   idx = len(hx)//2
   hl = hashlib.sha256(hx[:idx]).digest()
   hr = hashlib.sha256(hx[idx:]).digest()
-  return int.from_bytes(hl + hr, 'little')
+  result = int.from_bytes(hl + hr, 'little')
+  return result
 
 # m: bytes
 def root(m, p, q):
@@ -71,7 +74,7 @@ def sF(hexmsg):
 def vF(hexmsg, paddingnum, s):
   return hF(bytes.fromhex(hexmsg), paddingnum) == (s * s) % nrabin
  
-print("\n\n rabin signature - sCrypt Inc 2020 adapted from Scheerer - all rights reserved\n\n")
+"""print("\n\n rabin signature - sCrypt Inc 2020 adapted from Scheerer - all rights reserved\n\n")
 print("\n\n rabin signature - copyright Scheerer Software 2018 - all rights reserved\n\n")
 print("First parameter is V (Verify) or S (Sign) or G (Generate)\n\n")
 print("\n\n verify signature (2 parameters):")
@@ -85,7 +88,7 @@ print("   > python rabin.py G <hexseed> \n\n")
 
 print(" number of parameters is " + str(len(sys.argv)-1))
 print(" ")
-print(" ")
+print(" ")"""
 
 if len(sys.argv) == 5 and sys.argv[1] == "V":
   print("result of verification: " + str(vF(sys.argv[2], int(sys.argv[3]), int(sys.argv[4], 16))))
@@ -97,6 +100,4 @@ if len(sys.argv) == 3 and sys.argv[1] == "G":
   print(" generate primes ... ")
   p = nextPrime( h(bytes.fromhex(sys.argv[2])) % (2**501 + 1) )  
   q = nextPrime( h(bytes.fromhex(sys.argv[2] + '00')) % (2**501 + 1) )  
-  writeNumber(p, 'p')                     
-  writeNumber(q, 'q')     
   print("nrabin = ", hex(p * q))

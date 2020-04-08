@@ -1,0 +1,33 @@
+{
+  "name": "rabin",
+  "version": "1.0.0",
+  "description": "A Rabin Signatures library written in JavaScript.",
+  "main": "src/rabin.js",
+  "scripts": {
+    "test": "mocha --reporter spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/scrypt-sv/rabin.git"
+  },
+  "keywords": [
+    "rabin",
+    "signature",
+    "signatures",
+    "publickey",
+    "cryptography",
+    "bitcoin"
+  ],
+  "author": "Xiaohui Liu & Freddie Honohan",
+  "license": "SEE LICENSE IN LICENSE",
+  "bugs": {
+    "url": "https://github.com/scrypt-sv/rabin/issues"
+  },
+  "homepage": "https://github.com/scrypt-sv/rabin#readme",
+  "dependencies": {
+    "bigint-buffer": "^1.1.5",
+    "chai": "^4.2.0",
+    "math": "0.0.3",
+    "mocha": "^7.1.1"
+  }
+}
