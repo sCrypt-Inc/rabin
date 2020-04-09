@@ -44,9 +44,10 @@ describe("Verify Signature Tests", function() {
         });
     });
 });
-let randomValueTestCount = 10;
+let randomValueTestCount = 100;
 describe("Random Key Generation, Signature Creation & Verification Tests", function() {
-    it("Expecting 10 Passing Tests", function() {
+    it("Expecting "+randomValueTestCount+" Passing Tests", function() {
+        this.timeout(0); // Disable timeout altogether
         let verificationCount = 0;
         for(let i = 0; i < randomValueTestCount; i++){
             let key = generatePrivKey();
