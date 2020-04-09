@@ -60,11 +60,29 @@ let getRandomHex = function(len) {
     return r;
 }
 
+function sign(value) {
+    if (value > 0n) {
+        return 1n;
+    }
+    if (value < 0n) {
+        return -1n;
+    }
+    return 0n;
+}
+
+function bigIntAbsoluteValue(value) {
+    if (sign(value) === -1n) {
+        return -value;
+    }
+    else return value;
+}
+
 module.exports = {
     checkIfValidHexString,
     decimalToHexString,
     hexStringToDecimal,
     hexStringToBigInt,
+    bigIntAbsoluteValue,
     getRandomInt,
     getRandomHex
 }

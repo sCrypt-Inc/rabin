@@ -1,22 +1,30 @@
 /*
     Example usage of rabin.js
 */
-const{ generateRabinKeyFromSeed,
-    createRabinSignature,
-    verifyRabinSignature } = require("../src/rabin");
+const{ generatePrivKey,
+    privKeyToPubKey,
+    createSignature,
+    verifySignature } = require("../src/rabin");
 const { getRandomInt, getRandomHex } = require('../src/utils');
+let crypto;
+try {
+    crypto = require('crypto');
+} catch (err) {
+    console.log('crypto support is disabled!');
+}
 
-let key = generateRabinKeyFromSeed('0xe8d999619a31a000187075157c2213001893c551e44532003cf52959aa1154');//getRandomHex(getRandomInt(100)));
+let key = generatePrivKey();//getRandomHex(getRandomInt(100)));
 console.log("key p = "+key.p);
 console.log("key q = "+key.q);
-console.log("key nRabin = "+key.nRabin);
+let nRabin = privKeyToPubKey(key.p, key.q);
+console.log("key nRabin = "+nRabin);
 
-let dataHex = Buffer.from("msg2").toString('hex');//getRandomHex(getRandomInt(100));
+let dataHex = Buffer.from("msg").toString('hex');//getRandomHex(getRandomInt(100));
 console.log("dataHex = " + dataHex);
 
-let signatureResult = createRabinSignature(dataHex, key.p, key.q, key.nRabin);
+let signatureResult = createSignature(dataHex, key.p, key.q, nRabin);
 console.log("Signature = " + signatureResult.signature);
 console.log("Padding Bytes = " + signatureResult.paddingByteCount);
 
-let result = verifyRabinSignature(dataHex, signatureResult.paddingByteCount, signatureResult.signature, key.nRabin);
+let result = verifySignature(dataHex, signatureResult.paddingByteCount, signatureResult.signature, nRabin);
 console.log("Signature Verified = " + result);
