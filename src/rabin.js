@@ -2,19 +2,24 @@
 A Rabin Signature JavaScript module adapted
 from: https://github.com/scrypt-sv/rabin/blob/master/rabin.py
 */
-const { bsv } = require('scrypttest');
 const { toBigIntLE } = require('bigint-buffer');
-const { BigIntMath } = require('./bigintmath');
 const { checkIfValidHexString,
     decimalToHexString,
-    hexStringToBigInt } = require('./utils');
-
+    hexStringToBigInt,
+    bigIntAbsoluteValue } = require('./utils');
+let crypto;
+try {
+    crypto = require('crypto');
+} catch (err) {
+    throw('Error: crypto support is disabled!');
+}
+    
 function greatestCommonDivisor(a, b) {
     if ((typeof a !== 'bigint') || (typeof b !== 'bigint'))
         throw "Error: Incorrect argument(s) to greatestCommonDivisor()";
 
-    a = BigIntMath.abs(a);
-    b = BigIntMath.abs(b);
+    a = bigIntAbsoluteValue(a);
+    b = bigIntAbsoluteValue(b);
     if (b > a) {
         let t = a;
         a = b;
@@ -43,10 +48,10 @@ function powerMod(base, exponent, modulus) {
 }
 
 function rabinHashBytes(bytes) {
-    hBytes = bsv.crypto.Hash.sha256(bytes);
+    hBytes = crypto.createHash('sha256').update(bytes).digest();
     let idx = hBytes.byteLength / 2;
-    let hl = bsv.crypto.Hash.sha256(hBytes.slice(0, idx));
-    let hr = bsv.crypto.Hash.sha256(hBytes.slice(idx, hBytes.byteLength));
+    let hl = crypto.createHash('sha256').update(hBytes.slice(0, idx)).digest();
+    let hr = crypto.createHash('sha256').update(hBytes.slice(idx, hBytes.byteLength)).digest();
     return toBigIntLE(Buffer.concat([hl, hr]));
 }
 
@@ -98,49 +103,52 @@ function root(dataBuffer, p, q, nRabin) {
     };
 }
 
-function calculateRabinValueFromKeyParts(p,q){
-    if((typeof(p) !== 'bigint' && isNaN(p)) || (typeof(q) !== 'bigint' && isNaN(q)))
-        throw("Error: Key parts should be numbers.")
-    return decimalToHexString(BigInt(p) * BigInt(q));
+/**
+ * Calculates Key nRabin (public key) from private key parts p & q
+ * @param {BigInt} p Key private key 'p' part
+ * @param {BigInt} q Key private key 'q' part
+ * @returns {BigInt} Key nRabin (public key) = p * q
+ */
+function privKeyToPubKey(p,q){
+    if(typeof(p) !== 'bigint' || typeof(q) !== 'bigint')
+        throw("Error: Key parts (p,q) should be BigInts (denoted by trailing 'n').")
+    return p * q;
 }
 
 /**
- * Generates Key p, q and nRabin values from a hexadecimal seed
- * @param {String} seed hexadecimal string value
- * @returns {JSON} {'p': String,'q': String, 'nRabin': String} Key p, q and nRabin values in hex
+ * Generates Private Key p & q parts from a PRNG seed
+ * @returns {JSON} {'p': BigInt,'q': BigInt}
  */
-function generateRabinKeyFromSeed(seed) {
-    // Check if seed is valid hex
-    if (!checkIfValidHexString(seed))
-        throw ("Error: Seed %s should be a hexadecimal String with or without '0x' at the beginning.", seed);
-    // Remove 0x from seed if necessary
-    seed = seed.replace('0x', '');
-
+function generatePrivKey() {
+    // Get a seed value from a random buffer and convert it to a BigInt
+    let seed = crypto.randomBytes(2048);
+    
     let p = getPrimeNumber(rabinHashBytes(Buffer.from(seed, 'hex')) % ((2n ** 501n) + 1n));
     let q = getPrimeNumber(rabinHashBytes(Buffer.from(seed + '00', 'hex')) % ((2n ** 501n) + 1n));
-    let nRabin = calculateRabinValueFromKeyParts(p,q);
     return {
-        "p": decimalToHexString(p),
-        "q": decimalToHexString(q),
-        "nRabin": nRabin
+        "p": p,
+        "q": q
     };
 }
 
 /**
  * Creates a Rabin signature of hexadecimal data with a given key's values
  * @param {String} dataHex Hexadecimal data string value
- * @param {String} p Key 'p' value
- * @param {String} q Key 'q' value
- * @param {String} nRabin Key nRabin value
+ * @param {BigInt} p Key 'p' value
+ * @param {BigInt} q Key 'q' value
+ * @param {BigInt} nRabin Key nRabin value
  * @returns {JSON} {"signature": String, "paddingByteCount": Number} Signature and padding count
  */
-function createRabinSignature(dataHex, p, q, nRabin) {
+function createSignature(dataHex, p, q, nRabin) {
     // Check if data is valid hex
     if (!checkIfValidHexString(dataHex))
         throw ("Error: dataHex %s should be a hexadecimal String with or without '0x' at the beginning.", dataHex);
     // Remove 0x from data if necessary
     dataHex = dataHex.replace('0x', '');
-    return root(Buffer.from(dataHex, 'hex'), hexStringToBigInt(p), hexStringToBigInt(q), hexStringToBigInt(nRabin));
+    // Check key parts are correct values
+    if(typeof(p) !== 'bigint' || typeof(q) !== 'bigint' || typeof(nRabin) !== 'bigint')
+        throw("Error: Key parts (p,q) should be BigInts (denoted by trailing 'n').")
+    return root(Buffer.from(dataHex, 'hex'), p, q, nRabin);
 }
 
 /**
@@ -148,39 +156,38 @@ function createRabinSignature(dataHex, p, q, nRabin) {
  * @param {String} dataHex Hexadecimal data string value
  * @param {Number} paddingByteCount Padding byte count
  * @param {String} signatureHex Rabin signature hexadecimal string
- * @param {String} nRabinHex Key nRabin value hexadecimal string
+ * @param {BigInt} nRabinHex Public Key nRabin value
  * @returns {Boolean} If signature is valid or not
  */
-function verifyRabinSignature(dataHex, paddingByteCount, signatureHex, nRabinHex) {
+function verifySignature(dataHex, paddingByteCount, signatureHex, nRabin) {
     // Check if data is valid hex
     if (!checkIfValidHexString(dataHex))
         throw ("Error: Data %s should be a hexadecimal String with or without '0x' at the beginning.", dataHex);
     // Remove 0x from data if necessary
     dataHex = dataHex.replace('0x', '');
+    // Ensure padding count is a number
+    if(typeof paddingByteCount !== 'number')
+        throw ("Error: paddingByteCount should be a number");
     // Check if signature is valid hex
     if (!checkIfValidHexString(signatureHex))
         throw ("Error: Signature %s should be a hexadecimal String with or without '0x' at the beginning.", signatureHex);
     // Remove 0x from signature if necessary
     signatureHex = signatureHex.replace('0x', '');
-    // Check if nRabin is valid hex
-    if (!checkIfValidHexString(nRabinHex))
-        throw ("Error: nRabin %s should be a hexadecimal String with or without '0x' at the beginning.", nRabinHex);
-    // Remove 0x from nRabin if necessary
-    nRabinHex = nRabinHex.replace('0x', '');
-    if(typeof paddingByteCount !== 'number')
-        throw ("Error: paddingByteCount should be a number");
+    // Check if nRabin is a BigInt
+    if(typeof(nRabin) !== 'bigint')
+        throw("Error: Public Key nRabin should be a BigInt (denoted by trailing 'n').")
 
     let dataBuffer = Buffer.from(dataHex, 'hex');
     let paddingBuffer = Buffer.from('00'.repeat(paddingByteCount), 'hex');
     let paddedDataBuffer = Buffer.concat([dataBuffer, paddingBuffer]);
     let dataHash = rabinHashBytes(paddedDataBuffer);
-    let nRabinBigInt = hexStringToBigInt(nRabinHex);
-    let hashMod = dataHash % nRabinBigInt;
-    return hashMod === (hexStringToBigInt(signatureHex) ** 2n % nRabinBigInt);
+    let hashMod = dataHash % nRabin;
+    return hashMod === (hexStringToBigInt(signatureHex) ** 2n % nRabin);
 }
 
 module.exports = {
-    generateRabinKeyFromSeed,
-    createRabinSignature,
-    verifyRabinSignature
+    generatePrivKey,
+    privKeyToPubKey,
+    createSignature,
+    verifySignature,
 }

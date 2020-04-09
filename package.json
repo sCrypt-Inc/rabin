@@ -1,7 +1,7 @@
 {
   "name": "rabin",
   "version": "1.0.0",
-  "description": "A Rabin Signatures library written in JavaScript.",
+  "description": "A JavaScript Rabin Signature library.",
   "main": "src/rabin.js",
   "scripts": {
     "test": "mocha --reporter spec"
