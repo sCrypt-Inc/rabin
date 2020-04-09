@@ -4,7 +4,6 @@ from: https://github.com/scrypt-sv/rabin/blob/master/rabin.py
 */
 const { toBigIntLE } = require('bigint-buffer');
 const { checkIfValidHexString,
-    decimalToHexString,
     hexStringToBigInt,
     bigIntAbsoluteValue } = require('./utils');
 let crypto;
@@ -87,7 +86,6 @@ const paddingBuffer = Buffer.from('00', 'hex');
 function root(dataBuffer, p, q, nRabin) {
     let sig, x, paddingByteCount = 0;
     while (true) {
-        let h1 = rabinHashBytes(dataBuffer);
         x = rabinHashBytes(dataBuffer) % nRabin;
         sig = powerMod(p, q - 2n, q) * p * powerMod(x, (q + 1n) / 4n, q);
         sig = (powerMod(q, p - 2n, p) * q * powerMod(x, (p + 1n) / 4n, p) + sig) % (nRabin);
@@ -98,7 +96,7 @@ function root(dataBuffer, p, q, nRabin) {
         paddingByteCount++;
     }
     return {
-        "signature": decimalToHexString(sig),
+        "signature": sig,
         "paddingByteCount": paddingByteCount
     };
 }
@@ -137,7 +135,7 @@ function generatePrivKey() {
  * @param {BigInt} p Key 'p' value
  * @param {BigInt} q Key 'q' value
  * @param {BigInt} nRabin Key nRabin value
- * @returns {JSON} {"signature": String, "paddingByteCount": Number} Signature and padding count
+ * @returns {JSON} {"signature": BigInt, "paddingByteCount": Number} Signature and padding count
  */
 function createSignature(dataHex, p, q, nRabin) {
     // Check if data is valid hex
@@ -155,11 +153,11 @@ function createSignature(dataHex, p, q, nRabin) {
  * Verifies a Rabin signature of hexadecimal data with given padding count, signature and key nRabin value
  * @param {String} dataHex Hexadecimal data string value
  * @param {Number} paddingByteCount Padding byte count
- * @param {String} signatureHex Rabin signature hexadecimal string
- * @param {BigInt} nRabinHex Public Key nRabin value
+ * @param {BigInt} signature Rabin signature value
+ * @param {BigInt} nRabin Public Key nRabin value
  * @returns {Boolean} If signature is valid or not
  */
-function verifySignature(dataHex, paddingByteCount, signatureHex, nRabin) {
+function verifySignature(dataHex, paddingByteCount, signature, nRabin) {
     // Check if data is valid hex
     if (!checkIfValidHexString(dataHex))
         throw ("Error: Data %s should be a hexadecimal String with or without '0x' at the beginning.", dataHex);
@@ -168,21 +166,19 @@ function verifySignature(dataHex, paddingByteCount, signatureHex, nRabin) {
     // Ensure padding count is a number
     if(typeof paddingByteCount !== 'number')
         throw ("Error: paddingByteCount should be a number");
-    // Check if signature is valid hex
-    if (!checkIfValidHexString(signatureHex))
-        throw ("Error: Signature %s should be a hexadecimal String with or without '0x' at the beginning.", signatureHex);
-    // Remove 0x from signature if necessary
-    signatureHex = signatureHex.replace('0x', '');
+    // Check if signature is a BigInt
+    if(typeof(signature) !== 'bigint')
+    throw("Error: Signature should be a BigInt (denoted by trailing 'n').");
     // Check if nRabin is a BigInt
     if(typeof(nRabin) !== 'bigint')
-        throw("Error: Public Key nRabin should be a BigInt (denoted by trailing 'n').")
+        throw("Error: Public Key nRabin should be a BigInt (denoted by trailing 'n').");
 
     let dataBuffer = Buffer.from(dataHex, 'hex');
     let paddingBuffer = Buffer.from('00'.repeat(paddingByteCount), 'hex');
     let paddedDataBuffer = Buffer.concat([dataBuffer, paddingBuffer]);
     let dataHash = rabinHashBytes(paddedDataBuffer);
     let hashMod = dataHash % nRabin;
-    return hashMod === (hexStringToBigInt(signatureHex) ** 2n % nRabin);
+    return hashMod === (signature ** 2n % nRabin);
 }
 
 module.exports = {
