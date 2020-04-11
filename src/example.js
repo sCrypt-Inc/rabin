@@ -3,8 +3,8 @@
 */
 const{ generatePrivKey,
     privKeyToPubKey,
-    createSignature,
-    verifySignature } = require("../src/rabin");
+    sign,
+    verify } = require("../src/rabin");
 let crypto;
 try {
     crypto = require('crypto');
@@ -21,9 +21,9 @@ console.log("key nRabin = "+nRabin);
 let dataHex = Buffer.from("msg").toString('hex');
 console.log("dataHex = " + dataHex);
 
-let signatureResult = createSignature(dataHex, key.p, key.q, nRabin);
+let signatureResult = sign(dataHex, key.p, key.q, nRabin);
 console.log("Signature = " + signatureResult.signature);
 console.log("Padding Bytes = " + signatureResult.paddingByteCount);
 
-let result = verifySignature(dataHex, signatureResult.paddingByteCount, signatureResult.signature, nRabin);
+let result = verify(dataHex, signatureResult.paddingByteCount, signatureResult.signature, nRabin);
 console.log("Signature Verified = " + result);

@@ -137,7 +137,7 @@ function generatePrivKey() {
  * @param {BigInt} nRabin Key nRabin value
  * @returns {JSON} {"signature": BigInt, "paddingByteCount": Number} Signature and padding count
  */
-function createSignature(dataHex, p, q, nRabin) {
+function sign(dataHex, p, q, nRabin) {
     // Check if data is valid hex
     if (!checkIfValidHexString(dataHex))
         throw ("Error: dataHex %s should be a hexadecimal String with or without '0x' at the beginning.", dataHex);
@@ -157,7 +157,7 @@ function createSignature(dataHex, p, q, nRabin) {
  * @param {BigInt} nRabin Public Key nRabin value
  * @returns {Boolean} If signature is valid or not
  */
-function verifySignature(dataHex, paddingByteCount, signature, nRabin) {
+function verify(dataHex, paddingByteCount, signature, nRabin) {
     // Check if data is valid hex
     if (!checkIfValidHexString(dataHex))
         throw ("Error: Data %s should be a hexadecimal String with or without '0x' at the beginning.", dataHex);
@@ -184,6 +184,6 @@ function verifySignature(dataHex, paddingByteCount, signature, nRabin) {
 module.exports = {
     generatePrivKey,
     privKeyToPubKey,
-    createSignature,
-    verifySignature,
+    sign,
+    verify,
 }
