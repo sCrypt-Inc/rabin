@@ -1,7 +1,7 @@
 {
-  "name": "rabin",
+  "name": "rabinsig",
   "version": "1.0.0",
-  "description": "A JavaScript Rabin Signature library.",
+  "description": "A JavaScript Rabin Signature Library.",
   "main": "src/rabin.js",
   "scripts": {
     "test": "mocha --reporter spec --timeout 120000"
