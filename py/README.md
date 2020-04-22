@@ -1,6 +1,6 @@
 # A simple python script for Rabin Signature
 
-1. Generate key pairs with a seed. Replace `nrabin` in `rabin.py`.
+1. Generate key pairs with a seed. **Replace** `nrabin` in `rabin.py` with the `nrabin` in the output.
 ```bash
 > python rabin.py G 01
  generate primes ... 
