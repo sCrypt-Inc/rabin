@@ -120,13 +120,21 @@ function privKeyToPubKey(p,q){
 function generatePrivKey() {
     // Get a seed value from a random buffer and convert it to a BigInt
     let seed = crypto.randomBytes(2048);
-    
-    let p = getPrimeNumber(rabinHashBytes(Buffer.from(seed, 'hex')) % ((2n ** 501n) + 1n));
-    let q = getPrimeNumber(rabinHashBytes(Buffer.from(seed + '00', 'hex')) % ((2n ** 501n) + 1n));
-    return {
-        "p": p,
-        "q": q
-    };
+    return generatePrivKeyFromSeed(seed);
+}
+
+/**
+ * Generates Private Key p & q parts from Seed
+ * @param {Buffer} seed
+ * @returns {JSON} {'p': BigInt,'q': BigInt}
+ */
+function generatePrivKeyFromSeed(seed) {
+  let p = getPrimeNumber(rabinHashBytes(Buffer.from(seed, 'hex')) % ((2n ** 501n) + 1n));
+  let q = getPrimeNumber(rabinHashBytes(Buffer.from(seed + '00', 'hex')) % ((2n ** 501n) + 1n));
+  return {
+      "p": p,
+      "q": q
+  };
 }
 
 /**
@@ -183,6 +191,7 @@ function verify(dataHex, paddingByteCount, signature, nRabin) {
 
 module.exports = {
     generatePrivKey,
+    generatePrivKeyFromSeed,
     privKeyToPubKey,
     sign,
     verify,
