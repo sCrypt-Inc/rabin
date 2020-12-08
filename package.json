@@ -29,5 +29,8 @@
     "chai": "^4.2.0",
     "math": "0.0.3",
     "mocha": "^8.2.1"
+  },
+  "devDependencies": {
+    "bsv": "^1.5.4"
   }
 }
