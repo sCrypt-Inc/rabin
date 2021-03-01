@@ -129,8 +129,8 @@ function generatePrivKey() {
  * @returns {JSON} {'p': BigInt,'q': BigInt}
  */
 function generatePrivKeyFromSeed(seed) {
-  let p = getPrimeNumber(rabinHashBytes(Buffer.from(seed, 'hex')) % ((2n ** 501n) + 1n));
-  let q = getPrimeNumber(rabinHashBytes(Buffer.from(seed + '00', 'hex')) % ((2n ** 501n) + 1n));
+  let p = getPrimeNumber(rabinHashBytes(seed.toString('hex')) % ((2n ** 501n) + 1n));
+  let q = getPrimeNumber(rabinHashBytes(seed.toString('hex') + '00') % ((2n ** 501n) + 1n));
   return {
       "p": p,
       "q": q
