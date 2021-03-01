@@ -30,6 +30,10 @@
     "math": "0.0.3",
     "mocha": "^8.2.1"
   },
+  "files": [
+    "src/rabin.js",
+    "src/utils.js"
+  ],
   "devDependencies": {
     "bsv": "^1.5.4"
   }
