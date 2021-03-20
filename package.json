@@ -26,15 +26,14 @@
   "homepage": "https://github.com/scrypt-sv/rabin#readme",
   "dependencies": {
     "bigint-buffer": "^1.1.5",
-    "chai": "^4.2.0",
-    "math": "0.0.3",
-    "mocha": "^8.2.1"
+    "bsv": "^1.5.4"
   },
   "files": [
     "src/rabin.js",
     "src/utils.js"
   ],
   "devDependencies": {
-    "bsv": "^1.5.4"
+    "chai": "^4.2.0",
+    "mocha": "^8.2.1"
   }
 }

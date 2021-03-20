@@ -47,7 +47,7 @@ function powerMod(base, exponent, modulus) {
 }
 
 function rabinHashBytes(bytes) {
-    hBytes = crypto.createHash('sha256').update(bytes).digest();
+    const hBytes = crypto.createHash('sha256').update(bytes).digest();
     let idx = hBytes.byteLength / 2;
     let hl = crypto.createHash('sha256').update(hBytes.slice(0, idx)).digest();
     let hr = crypto.createHash('sha256').update(hBytes.slice(idx, hBytes.byteLength)).digest();
@@ -55,7 +55,7 @@ function rabinHashBytes(bytes) {
 }
 
 function calculateNextPrime(p) {
-    smallPrimesProduct = 3n * 5n * 7n * 11n * 13n * 17n * 19n * 23n * 29n;
+    const smallPrimesProduct = 3n * 5n * 7n * 11n * 13n * 17n * 19n * 23n * 29n;
     while (greatestCommonDivisor(p, smallPrimesProduct) != 1) {
         p = p + 4n;
     }
