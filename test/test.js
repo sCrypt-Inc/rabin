@@ -45,11 +45,29 @@ describe("Verify Signature Tests", function() {
     });
 });
 let randomValueTestCount = 100;
-describe("Random Key Generation, Signature Creation & Verification Tests", function() {
+describe("Random 2048 length seed Key Generation, Signature Creation & Verification Tests", function() {
     it("Expecting "+randomValueTestCount+" Passing Tests", function() {
         let verificationCount = 0;
         for(let i = 0; i < randomValueTestCount; i++){
             let key = generatePrivKey();
+            let nRabin = privKeyToPubKey(key.p, key.q);
+            let dataHex = getRandomHex(getRandomInt(2,100));
+            let signatureResult = sign(dataHex, key.p, key.q, nRabin);
+            let result = verify(dataHex, signatureResult.paddingByteCount, signatureResult.signature, nRabin);
+            if(result)
+              verificationCount++;
+            else
+              console.log("Error: Test failing with values: "+{"key":key,"nRabin":nRabin,"dataHex":dataHex});
+        }
+        expect(verificationCount).to.equal(randomValueTestCount);
+    });
+});
+
+describe("Random 3072 length seed Key Generation, Signature Creation & Verification Tests", function() {
+    it("Expecting "+randomValueTestCount+" Passing Tests", function() {
+        let verificationCount = 0;
+        for(let i = 0; i < randomValueTestCount; i++){
+            let key = generatePrivKey(3072);
             let nRabin = privKeyToPubKey(key.p, key.q);
             let dataHex = getRandomHex(getRandomInt(2,100));
             let signatureResult = sign(dataHex, key.p, key.q, nRabin);

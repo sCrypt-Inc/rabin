@@ -4,7 +4,6 @@ from: https://github.com/scrypt-sv/rabin/blob/master/rabin.py
 */
 const { toBigIntLE } = require('bigint-buffer');
 const { checkIfValidHexString,
-    hexStringToBigInt,
     bigIntAbsoluteValue } = require('./utils');
 let crypto;
 try {
@@ -115,11 +114,12 @@ function privKeyToPubKey(p,q){
 
 /**
  * Generates Private Key p & q parts from a PRNG seed
+ * @param {Number} the length of random Seed, default is 2048
  * @returns {JSON} {'p': BigInt,'q': BigInt}
  */
-function generatePrivKey() {
+function generatePrivKey(strong=2048) {
     // Get a seed value from a random buffer and convert it to a BigInt
-    let seed = crypto.randomBytes(2048);
+    let seed = crypto.randomBytes(strong);
     return generatePrivKeyFromSeed(seed);
 }
 
