@@ -13,7 +13,7 @@ function decimalToHexString(number) {
     if (number < 0) {
         number = 0xFFFFFFFF + number + 1;
     }
-    return '0x'+number.toString(16);
+    return number.toString(16);
 }
 
 function hexStringToDecimal(hexString) {
