@@ -1,6 +1,9 @@
 import hashlib
 import sys
 
+# strength 1 = 512 bits public key and hash length
+STRENGTH = 1
+
 
 def gcd(a, b):
     if b > a:
@@ -25,11 +28,16 @@ def next_prime_3(p):
     return p
 
 
-def hash_to_int(x: bytes) -> int:
+def h(x: bytes) -> bytes:
     hx = hashlib.sha256(x).digest()
-    # Expand to 3072 bits
-    for i in range(11):
-        hx += hashlib.sha256(hx).digest()
+    idx = len(hx) // 2
+    return hashlib.sha256(hx[:idx]).digest() + hashlib.sha256(hx[idx:]).digest()
+
+
+def hash_to_int(x: bytes) -> int:
+    hx = h(x)
+    for _ in range(STRENGTH - 1):
+        hx += h(hx)
     return int.from_bytes(hx, 'little')
 
 
