@@ -28,16 +28,16 @@ def next_prime_3(p):
     return p
 
 
-def h(x: bytes) -> bytes:
+def hash512(x: bytes) -> bytes:
     hx = hashlib.sha256(x).digest()
     idx = len(hx) // 2
     return hashlib.sha256(hx[:idx]).digest() + hashlib.sha256(hx[idx:]).digest()
 
 
 def hash_to_int(x: bytes) -> int:
-    hx = h(x)
+    hx = hash512(x)
     for _ in range(STRENGTH - 1):
-        hx += h(hx)
+        hx += hash512(hx)
     return int.from_bytes(hx, 'little')
 
 
