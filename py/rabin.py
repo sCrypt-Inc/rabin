@@ -1,8 +1,8 @@
 import hashlib
 import sys
 
-# strength 1 = 512 bits public key and hash length
-STRENGTH = 1
+# security level 1 means  512 bits public key and hash length
+SECURITY_LEVEL = 1
 
 
 def gcd(a, b):
@@ -36,7 +36,7 @@ def hash512(x: bytes) -> bytes:
 
 def hash_to_int(x: bytes) -> int:
     hx = hash512(x)
-    for _ in range(STRENGTH - 1):
+    for _ in range(SECURITY_LEVEL - 1):
         hx += hash512(hx)
     return int.from_bytes(hx, 'little')
 
@@ -116,7 +116,7 @@ if __name__ == '__main__':
 
     if len(sys.argv) == 3 and sys.argv[1] == 'G':
         print('\n generate primes ... ')
-        priv_range = 2 ** (256 * STRENGTH)
+        priv_range = 2 ** (256 * SECURITY_LEVEL)
         p_rabin = next_prime(hash_to_int(bytes.fromhex(sys.argv[2])) % priv_range)
         q_rabin = next_prime(hash_to_int(bytes.fromhex(sys.argv[2] + '00')) % priv_range)
         write_number(p_rabin, 'p')
