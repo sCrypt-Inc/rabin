@@ -116,8 +116,9 @@ if __name__ == '__main__':
 
     if len(sys.argv) == 3 and sys.argv[1] == 'G':
         print('\n generate primes ... ')
-        p_rabin = next_prime(hash_to_int(bytes.fromhex(sys.argv[2])) % (2 ** 501 + 1))
-        q_rabin = next_prime(hash_to_int(bytes.fromhex(sys.argv[2] + '00')) % (2 ** 501 + 1))
+        priv_range = 2 ** (256 * STRENGTH)
+        p_rabin = next_prime(hash_to_int(bytes.fromhex(sys.argv[2])) % priv_range)
+        q_rabin = next_prime(hash_to_int(bytes.fromhex(sys.argv[2] + '00')) % priv_range)
         write_number(p_rabin, 'p')
         write_number(q_rabin, 'q')
         write_number(p_rabin * q_rabin, 'n')
