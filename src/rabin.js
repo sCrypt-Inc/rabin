@@ -17,10 +17,14 @@ class RabinSignature {
 
   /**
    * RabinSignature
-   * @param {*} strong : from 1(512bit) to 6(3072bit) or more
+   * @param {*} securityLevel : multiple of 512 bits.
    */
-  constructor ( strong = 1 ) {
-    this.strong = strong
+  constructor ( securityLevel = 1 ) {
+    if ( securityLevel < 1 ) { 
+      this.securityLevel = 1 
+    } else {
+      this.securityLevel = securityLevel
+    }
   }
 
   greatestCommonDivisor ( a, b ) {
@@ -67,7 +71,7 @@ class RabinSignature {
 
   rabinHashBytes ( bytes ) {
     let result = this.bin2hash( bytes )
-    for ( let i = 0; i < this.strong - 1; i++ ) {
+    for ( let i = 0; i < this.securityLevel - 1; i++ ) {
       result = Buffer.concat( [ result, this.bin2hash( result ) ] );
     }
     return toBigIntLE( result );
@@ -149,7 +153,7 @@ class RabinSignature {
    * @returns {JSON} {'p': BigInt,'q': BigInt}
    */
   generatePrivKeyFromSeed ( seed ) {
-    const range = 2n ** BigInt( 256 * this.strong ) - 1n
+    const range = 2n ** BigInt( 256 * this.securityLevel )
     let p = this.getPrimeNumber( this.rabinHashBytes( seed.toString( 'hex' ) ) % range );
     let q = this.getPrimeNumber( this.rabinHashBytes( seed.toString( 'hex' ) + '00' ) % range );
     return {
@@ -186,7 +190,7 @@ class RabinSignature {
    * @param {BigInt} nRabin Public Key nRabin value
    * @returns {Boolean} If signature is valid or not
    */
-  verify ( dataHex, paddingByteCount, signature, nRabin, strong = 1 ) {
+  verify ( dataHex, paddingByteCount, signature, nRabin) {
     // Check if data is valid hex
     if ( !checkIfValidHexString( dataHex ) )
       throw ( "Error: Data %s should be a hexadecimal String with or without '0x' at the beginning.", dataHex );
