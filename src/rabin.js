@@ -12,8 +12,8 @@ try {
   throw ( 'Error: crypto support is disabled!' );
 }
 
+const PaddingBuffer = Buffer.from( '00', 'hex' );
 class RabinSignature {
-  static paddingBuffer = Buffer.from( '00', 'hex' );
 
   /**
    * RabinSignature
@@ -115,7 +115,7 @@ class RabinSignature {
       if ( ( ( sig * sig ) % nRabin ) === x ) {
         break;
       }
-      dataBuffer = Buffer.concat( [ dataBuffer, RabinSignature.paddingBuffer ] );
+      dataBuffer = Buffer.concat( [ dataBuffer, PaddingBuffer ] );
       paddingByteCount++;
     }
     return {
