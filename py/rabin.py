@@ -1,6 +1,9 @@
 import hashlib
 import sys
 
+# security level 1 means  512 bits public key and hash length
+SECURITY_LEVEL = 1
+
 
 def gcd(a, b):
     if b > a:
@@ -25,11 +28,16 @@ def next_prime_3(p):
     return p
 
 
-def hash_to_int(x: bytes) -> int:
+def hash512(x: bytes) -> bytes:
     hx = hashlib.sha256(x).digest()
-    # Expand to 3072 bits
-    for i in range(11):
-        hx += hashlib.sha256(hx).digest()
+    idx = len(hx) // 2
+    return hashlib.sha256(hx[:idx]).digest() + hashlib.sha256(hx[idx:]).digest()
+
+
+def hash_to_int(x: bytes) -> int:
+    hx = hash512(x)
+    for _ in range(SECURITY_LEVEL - 1):
+        hx += hash512(hx)
     return int.from_bytes(hx, 'little')
 
 
@@ -108,8 +116,9 @@ if __name__ == '__main__':
 
     if len(sys.argv) == 3 and sys.argv[1] == 'G':
         print('\n generate primes ... ')
-        p_rabin = next_prime(hash_to_int(bytes.fromhex(sys.argv[2])) % (2 ** 501 + 1))
-        q_rabin = next_prime(hash_to_int(bytes.fromhex(sys.argv[2] + '00')) % (2 ** 501 + 1))
+        priv_range = 2 ** (256 * SECURITY_LEVEL)
+        p_rabin = next_prime(hash_to_int(bytes.fromhex(sys.argv[2])) % priv_range)
+        q_rabin = next_prime(hash_to_int(bytes.fromhex(sys.argv[2] + '00')) % priv_range)
         write_number(p_rabin, 'p')
         write_number(q_rabin, 'q')
         write_number(p_rabin * q_rabin, 'n')
