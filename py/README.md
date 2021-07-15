@@ -5,20 +5,20 @@
 ```bash
 > python3 rabin.py G 01
 generate primes ... 
-n_rabin = 0x15525796ddab817a3c54c4bea4ef564f090c5909b36818c1c13b9e674cf524aa3387a408f9b63c0d88d11a76471f9f2c3f29c47a637aa60bf5e120d1f5a65221
+n_rabin = 0x4dd67a38e65c6d5d0877e892f1453fa09d27313f1431fcea6e703571fd56bf0b8bdd4788d94a7ec79c4232ead62eb34cd4f212e13fddaadf659ac6e45dc32c9
 ```
 
 2. Sign a message: get number of padding bytes and signature
 
 ```bash
 > python3 rabin.py S 00112233445566778899aabbccddeeff
-padding = 4
-digital signature = 0x12f1dd2e0965dc433b0d32b86333b0fb432df592f6108803d7afe51a14a0e867045fe22af85862b8e744700920e0b7e430a192440a714277efb895b51120e4cc
+padding = 3
+digital signature = 0x420818748a86065611c0e1be3c0bae9c22fe5e515a4a35601be8b4d8bc1049c75775e01e07e2257a689e916ea7751bdfc8b1eeb51d418e2714ae2fc8eadde1b
 ```
 
 3. Verify signature with results from step 2
 
 ```bash
-> python3 rabin.py V 00112233445566778899aabbccddeeff 4 12f1dd2e0965dc433b0d32b86333b0fb432df592f6108803d7afe51a14a0e867045fe22af85862b8e744700920e0b7e430a192440a714277efb895b51120e4cc
+> python3 rabin.py V 00112233445566778899aabbccddeeff 3 420818748a86065611c0e1be3c0bae9c22fe5e515a4a35601be8b4d8bc1049c75775e01e07e2257a689e916ea7751bdfc8b1eeb51d418e2714ae2fc8eadde1b
 result of verification: True
 ```
