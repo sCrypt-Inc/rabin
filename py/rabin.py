@@ -5,7 +5,7 @@ import sys
 SECURITY_LEVEL = 1
 
 
-def gcd(a, b):
+def gcd(a: int, b: int) -> int:
     if b > a:
         a, b = b, a
     while b > 0:
@@ -13,13 +13,13 @@ def gcd(a, b):
     return a
 
 
-def next_prime(p):
+def next_prime(p: int) -> int:
     while p % 4 != 3:
         p = p + 1
     return next_prime_3(p)
 
 
-def next_prime_3(p):
+def next_prime_3(p: int) -> int:
     m_ = 3 * 5 * 7 * 11 * 13 * 17 * 19 * 23 * 29
     while gcd(p, m_) != 1:
         p = p + 4
@@ -71,25 +71,25 @@ def verify_rabin(n: int, digest: bytes, s: int, padding: int) -> bool:
     return hash_to_int(digest + b'\x00' * padding) % n == (s * s) % n
 
 
-def write_number(number, filename):
+def write_number(number: int, filename: str) -> None:
     with open(f'{filename}.txt', 'w') as f:
         f.write('%d' % number)
 
 
-def read_number(filename):
+def read_number(filename: str) -> int:
     with open(f'{filename}.txt', 'r') as f:
         return int(f.read())
 
 
-def sign(hex_message: str):
+def sign(hex_message: str) -> tuple:
     p = read_number('p')
     q = read_number('q')
     return sign_rabin(p, q, bytes.fromhex(hex_message))
 
 
-def verify(hex_message, padding, hex_signature):
+def verify(hex_message: str, padding: str, hex_signature: str):
     n = read_number('n')
-    return verify_rabin(n, bytes.fromhex(hex_message), hex_signature, padding)
+    return verify_rabin(n, bytes.fromhex(hex_message), int(hex_signature, 16), int(padding))
 
 
 if __name__ == '__main__':
@@ -107,7 +107,7 @@ if __name__ == '__main__':
     print(f'\n\nnumber of parameters is {len(sys.argv) - 1}')
 
     if len(sys.argv) == 5 and sys.argv[1] == 'V':
-        print(f'\n result of verification: {verify(sys.argv[2], int(sys.argv[3]), int(sys.argv[4], 16))}')
+        print(f'\n result of verification: {verify(sys.argv[2], sys.argv[3], sys.argv[4])}')
 
     if len(sys.argv) == 3 and sys.argv[1] == 'S':
         sig, pad = sign(sys.argv[2])
