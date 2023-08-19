@@ -1,10 +1,7 @@
 /*
     Example usage of rabin.js
 */
-const{ generatePrivKey,
-    privKeyToPubKey,
-    sign,
-    verify } = require("../src/rabin");
+const { RabinSignature } = require("../src/rabin");
 let crypto;
 try {
     crypto = require('crypto');
@@ -12,18 +9,21 @@ try {
     console.log('crypto support is disabled!');
 }
 
-let key = generatePrivKey();
-console.log("key p = "+key.p);
-console.log("key q = "+key.q);
-let nRabin = privKeyToPubKey(key.p, key.q);
-console.log("key nRabin = "+nRabin);
+const securityLevel = 6 // from 1(512bit) to 6(3072bit)
+const rabin = new RabinSignature(securityLevel)
+
+let key = rabin.generatePrivKey();
+console.log("key p = " + key.p);
+console.log("key q = " + key.q);
+let nRabin = rabin.privKeyToPubKey(key);
+console.log("key nRabin = " + nRabin);
 
 let dataHex = Buffer.from("msg").toString('hex');
 console.log("dataHex = " + dataHex);
 
-let signatureResult = sign(dataHex, key.p, key.q, nRabin);
+let signatureResult = rabin.sign(dataHex, key);
 console.log("Signature = " + signatureResult.signature);
 console.log("Padding Bytes = " + signatureResult.paddingByteCount);
 
-let result = verify(dataHex, signatureResult.paddingByteCount, signatureResult.signature, nRabin);
+let result = rabin.verify(dataHex, signatureResult, nRabin);
 console.log("Signature Verified = " + result);
