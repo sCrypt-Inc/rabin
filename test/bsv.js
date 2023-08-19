@@ -9,27 +9,28 @@ const rabin = new RabinSignature(securityLevel)
 
 const bsvPrivateKey = new bsv.PrivateKey()
 let defaultKey = rabin.generatePrivKeyFromSeed( bsvPrivateKey.toBuffer() );
+const keyWrongP = Object.assign( {}, defaultKey, { p: 7 } );
+const keyWrongQ = Object.assign( {}, defaultKey, { q: 11 } );
 
-let defaultNRabin = rabin.privKeyToPubKey( defaultKey.p, defaultKey.q );
+let defaultNRabin = rabin.privKeyToPubKey( defaultKey );
 let defaultDataHex = Buffer.from( "msg" ).toString( 'hex' );
 let defaultNotHexValue = "defaultNotHexValue";
-let defaultSignatureResult = rabin.sign( defaultDataHex, defaultKey.p, defaultKey.q, defaultNRabin );
+let defaultSignatureResult = rabin.sign( defaultDataHex, defaultKey );
+const signatureResultWrongPadding = Object.assign( {}, defaultSignatureResult, { paddingByteCount: 'NaN' } );
+const signatureResultWrongSignature = Object.assign( {}, defaultSignatureResult, { signature: defaultNotHexValue } );
 
 describe( "Create Private from BSV PrivateKey", function () {
 
   describe( "Create Signature Tests", function () {
     describe( "Incorrect Input Tests", function () {
       it( "Wrong data value", function () {
-        expect( function () { rabin.sign( defaultNotHexValue, defaultKey.p, defaultKey.q, defaultNRabin ); } ).to.throw( defaultNotHexValue );
+        expect( function () { rabin.sign( defaultNotHexValue, defaultKey ); } ).to.throw( defaultNotHexValue );
       } );
       it( "Wrong p value", function () {
-        expect( function () { rabin.sign( defaultDataHex, defaultNotHexValue, defaultKey.q, defaultNRabin ); } ).to.throw( "Error: Key parts (p,q) should be BigInts (denoted by trailing \'n\')." );
+        expect( function () { rabin.sign( defaultDataHex, keyWrongP ); } ).to.throw( "Error: Key parts (p,q) should be BigInts (denoted by trailing \'n\')." );
       } );
       it( "Wrong q value", function () {
-        expect( function () { rabin.sign( defaultDataHex, defaultKey.p, defaultNotHexValue, defaultNRabin ); } ).to.throw( "Error: Key parts (p,q) should be BigInts (denoted by trailing \'n\')." );
-      } );
-      it( "Wrong nRabin value", function () {
-        expect( function () { rabin.sign( defaultDataHex, defaultKey.p, defaultKey.q, defaultNotHexValue ); } ).to.throw( "Error: Key parts (p,q) should be BigInts (denoted by trailing \'n\')." );
+        expect( function () { rabin.sign( defaultDataHex, keyWrongQ ); } ).to.throw( "Error: Key parts (p,q) should be BigInts (denoted by trailing \'n\')." );
       } );
     } );
   } );
@@ -37,16 +38,16 @@ describe( "Create Private from BSV PrivateKey", function () {
   describe( "Verify Signature Tests", function () {
     describe( "Incorrect Input Tests", function () {
       it( "Wrong data value", function () {
-        expect( function () { rabin.verify( defaultNotHexValue, defaultSignatureResult.paddingByteCount, defaultSignatureResult.signature, defaultNRabin ); } ).to.throw( defaultNotHexValue );
+        expect( function () { rabin.verify( defaultNotHexValue, defaultSignatureResult, defaultNRabin ); } ).to.throw( defaultNotHexValue );
       } );
       it( "Wrong padding value", function () {
-        expect( function () { rabin.verify( defaultDataHex, "NaN", defaultSignatureResult.signature, defaultNRabin ); } ).to.throw( "Error: paddingByteCount should be a number" );
+        expect( function () { rabin.verify( defaultDataHex, signatureResultWrongPadding, defaultNRabin ); } ).to.throw( "Error: paddingByteCount should be a number" );
       } );
       it( "Wrong signature value", function () {
-        expect( function () { rabin.verify( defaultNotHexValue, defaultSignatureResult.paddingByteCount, defaultNotHexValue, defaultNRabin ); } ).to.throw( defaultNotHexValue );
+        expect( function () { rabin.verify( defaultNotHexValue, signatureResultWrongSignature, defaultNRabin ); } ).to.throw( defaultNotHexValue );
       } );
       it( "Wrong nRabin value", function () {
-        expect( function () { rabin.verify( defaultNotHexValue, defaultSignatureResult.paddingByteCount, defaultSignatureResult.signature, defaultNotHexValue ); } ).to.throw( defaultNotHexValue );
+        expect( function () { rabin.verify( defaultNotHexValue, defaultSignatureResult, defaultNotHexValue ); } ).to.throw( defaultNotHexValue );
       } );
     } );
   } );
@@ -57,10 +58,10 @@ describe( "Create Private from BSV PrivateKey", function () {
       for ( let i = 0; i < randomValueTestCount; i++ ) {
         const seed = new bsv.PrivateKey()
         let key = rabin.generatePrivKeyFromSeed( seed.toBuffer() );
-        let nRabin = rabin.privKeyToPubKey( key.p, key.q );
+        let nRabin = rabin.privKeyToPubKey( key );
         let dataHex = getRandomHex( getRandomInt( 2, 100 ) );
-        let signatureResult = rabin.sign( dataHex, key.p, key.q, nRabin );
-        let result = rabin.verify( dataHex, signatureResult.paddingByteCount, signatureResult.signature, nRabin );
+        let signatureResult = rabin.sign( dataHex, key );
+        let result = rabin.verify( dataHex, signatureResult, nRabin );
         if ( result )
           verificationCount++;
         else

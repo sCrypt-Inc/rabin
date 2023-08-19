@@ -130,7 +130,8 @@ class RabinSignature {
    * @param {BigInt} q Key private key 'q' part
    * @returns {BigInt} Key nRabin (public key) = p * q
    */
-  privKeyToPubKey ( p, q ) {
+  privKeyToPubKey ( privKey ) {
+    const { p, q } = privKey
     if ( typeof ( p ) !== 'bigint' || typeof ( q ) !== 'bigint' )
       throw ( "Error: Key parts (p,q) should be BigInts (denoted by trailing 'n')." )
     return p * q;
@@ -170,16 +171,17 @@ class RabinSignature {
    * @param {BigInt} nRabin Key nRabin value
    * @returns {JSON} {"signature": BigInt, "paddingByteCount": Number} Signature and padding count
    */
-  sign ( dataHex, p, q, nRabin ) {
+  sign ( dataHex, privKey ) {
     // Check if data is valid hex
     if ( !checkIfValidHexString( dataHex ) )
       throw ( "Error: dataHex %s should be a hexadecimal String with or without '0x' at the beginning.", dataHex );
     // Remove 0x from data if necessary
     dataHex = dataHex.replace( '0x', '' );
     // Check key parts are correct values
-    if ( typeof ( p ) !== 'bigint' || typeof ( q ) !== 'bigint' || typeof ( nRabin ) !== 'bigint' )
+    const { p, q } = privKey
+    if ( typeof ( p ) !== 'bigint' || typeof ( q ) !== 'bigint' )
       throw ( "Error: Key parts (p,q) should be BigInts (denoted by trailing 'n')." )
-    return this.root( Buffer.from( dataHex, 'hex' ), p, q, nRabin );
+    return this.root( Buffer.from( dataHex, 'hex' ), p, q, p * q );
   }
 
   /**
@@ -190,12 +192,13 @@ class RabinSignature {
    * @param {BigInt} nRabin Public Key nRabin value
    * @returns {Boolean} If signature is valid or not
    */
-  verify ( dataHex, paddingByteCount, signature, nRabin) {
+  verify ( dataHex, sig, nRabin) {
     // Check if data is valid hex
     if ( !checkIfValidHexString( dataHex ) )
       throw ( "Error: Data %s should be a hexadecimal String with or without '0x' at the beginning.", dataHex );
     // Remove 0x from data if necessary
     dataHex = dataHex.replace( '0x', '' );
+    const { paddingByteCount, signature } = sig
     // Ensure padding count is a number
     if ( typeof paddingByteCount !== 'number' )
       throw ( "Error: paddingByteCount should be a number" );
