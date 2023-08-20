@@ -1,10 +1,14 @@
 {
   "name": "rabinsig",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "A JavaScript Rabin Signature Library.",
-  "main": "src/rabin.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
-    "test": "mocha --reporter spec --timeout 120000"
+    "build": "rimraf dist && tsc",
+    "test": "npm run build && mocha",
+    "example": "npm run build && node dist/example.js",
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -25,15 +29,19 @@
   },
   "homepage": "https://github.com/scrypt-sv/rabin#readme",
   "dependencies": {
-    "bigint-buffer": "^1.1.5",
-    "bsv": "^1.5.4"
+    "bigint-buffer": "^1.1.5"
   },
   "files": [
-    "src/rabin.js",
-    "src/utils.js"
+    "./dist"
   ],
   "devDependencies": {
+    "@types/chai": "^4.3.5",
+    "@types/mocha": "^10.0.1",
+    "bsv": "^1.5.4",
     "chai": "^4.2.0",
-    "mocha": "^8.2.1"
+    "mocha": "^8.2.1",
+    "rimraf": "^5.0.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.1.6"
   }
 }
