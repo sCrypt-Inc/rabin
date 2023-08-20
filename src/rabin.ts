@@ -9,7 +9,7 @@ import { createHash, randomBytes } from 'crypto'
 /**
  * Rabin signature result
  */
-export interface RabinSig {
+export interface RabinSignature {
   signature: bigint,
   paddingByteCount: number,
 }
@@ -17,7 +17,7 @@ export interface RabinSig {
 /**
  * Rabin private key
  */
-export interface RabinPrivKey {
+export interface RabinPrivateKey {
   p: bigint,
   q: bigint,
 }
@@ -25,9 +25,9 @@ export interface RabinPrivKey {
 /**
  * Rabin public key
  */
-export type RabinPubKey = bigint
+export type RabinPublicKey = bigint
 
-export class RabinSignature {
+export class Rabin {
 
   static readonly PaddingBuffer = Buffer.from('00', 'hex')
 
@@ -117,7 +117,7 @@ export class RabinSignature {
   }
 
 
-  root(dataBuffer: Buffer, p: bigint, q: bigint, nRabin: bigint): RabinSig {
+  root(dataBuffer: Buffer, p: bigint, q: bigint, nRabin: bigint): RabinSignature {
     let signature: bigint, x: bigint, paddingByteCount: number = 0;
     while (true) {
       x = this.rabinHashBytes(dataBuffer) % nRabin;
@@ -126,7 +126,7 @@ export class RabinSignature {
       if (((signature * signature) % nRabin) === x) {
         break;
       }
-      dataBuffer = Buffer.concat([dataBuffer, RabinSignature.PaddingBuffer]);
+      dataBuffer = Buffer.concat([dataBuffer, Rabin.PaddingBuffer]);
       paddingByteCount++;
     }
     return { signature, paddingByteCount };
@@ -135,7 +135,7 @@ export class RabinSignature {
   /**
    * Calculates Rabin public key from private key
    */
-  privKeyToPubKey(privKey: RabinPrivKey): RabinPubKey {
+  privKeyToPubKey(privKey: RabinPrivateKey): RabinPublicKey {
     const { p, q } = privKey
     return p * q;
   }
@@ -143,7 +143,7 @@ export class RabinSignature {
   /**
    * Generates Rabin private key
    */
-  generatePrivKey(): RabinPrivKey {
+  generatePrivKey(): RabinPrivateKey {
     // Get a seed value from a random buffer and convert it to a BigInt
     let seed = randomBytes(2048);
     return this.generatePrivKeyFromSeed(seed);
@@ -152,9 +152,9 @@ export class RabinSignature {
   /**
    * Generates Rabin private key from a PRNG seed
    * @param {Buffer} seed
-   * @returns {RabinPrivKey} Rabin private key
+   * @returns {RabinPrivateKey} Rabin private key
    */
-  generatePrivKeyFromSeed(seed: Buffer): RabinPrivKey {
+  generatePrivKeyFromSeed(seed: Buffer): RabinPrivateKey {
     const range = 2n ** BigInt(256 * this.securityLevel)
     let p = this.getPrimeNumber(this.rabinHashBytes(seed) % range);
     let q = this.getPrimeNumber(this.rabinHashBytes(Buffer.from(seed.toString('hex') + '00', "hex")) % range);
@@ -164,10 +164,10 @@ export class RabinSignature {
   /**
    * Creates a Rabin signature of hexadecimal data with a given private key
    * @param {string} dataHex Hexadecimal data string value
-   * @param {RabinPrivKey} privKey Rabin private key
-   * @returns {RabinSig} Rabin signature result
+   * @param {RabinPrivateKey} privKey Rabin private key
+   * @returns {RabinSignature} Rabin signature result
    */
-  sign(dataHex: string, privKey: RabinPrivKey): RabinSig {
+  sign(dataHex: string, privKey: RabinPrivateKey): RabinSignature {
     // Check if data is valid hex
     if (!isHexString(dataHex))
       throw (`Error: dataHex ${dataHex} should be a hexadecimal String with or without '0x' at the beginning.`);
@@ -181,11 +181,11 @@ export class RabinSignature {
   /**
    * Verifies a Rabin signature of hexadecimal data with the given public key
    * @param {string} dataHex Hexadecimal data string value
-   * @param {RabinSig} sig Rabin signature result
-   * @param {RabinPubKey} pubKey Rabin public key
+   * @param {RabinSignature} sig Rabin signature result
+   * @param {RabinPublicKey} pubKey Rabin public key
    * @returns {boolean} If signature is valid or not
    */
-  verify(dataHex: string, sig: RabinSig, pubKey: RabinPubKey): boolean {
+  verify(dataHex: string, sig: RabinSignature, pubKey: RabinPublicKey): boolean {
     // Check if data is valid hex
     if (!isHexString(dataHex))
       throw (`Error: Data ${dataHex} should be a hexadecimal String with or without '0x' at the beginning.`);

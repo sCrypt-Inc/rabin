@@ -1,4 +1,4 @@
-import { RabinPrivKey, RabinSignature } from '../src/rabin'
+import { RabinPrivateKey, Rabin } from '../src/rabin'
 import { expect } from 'chai'
 import { bigIntToHexString, getRandomHexString, getRandomInt } from '../src/utils'
 const bsv = require('bsv')
@@ -7,7 +7,7 @@ describe("SecurityLevel Tests", () => {
 
   it("level", () => {
     for (let level = 1; level <= 7; level++) {
-      const rabin = new RabinSignature(level)
+      const rabin = new Rabin(level)
       let key = rabin.generatePrivKey();
       let pubkey = rabin.privKeyToPubKey(key);
       expect(bigIntToHexString(pubkey).length / 2 * 8).to.greaterThanOrEqual(512 * level);
@@ -19,7 +19,7 @@ describe("SecurityLevel Tests", () => {
 describe('Rabin sign and verify Tests', () => {
 
   const securityLevel = 6
-  const rabin = new RabinSignature(securityLevel)
+  const rabin = new Rabin(securityLevel)
 
   const privKey = rabin.generatePrivKey()
   const pubKey = rabin.privKeyToPubKey(privKey)
@@ -68,7 +68,7 @@ describe('Rabin sign and verify Tests', () => {
 
 })
 
-function randomTest(rabin: RabinSignature, key: RabinPrivKey): boolean {
+function randomTest(rabin: Rabin, key: RabinPrivateKey): boolean {
   const nRabin = rabin.privKeyToPubKey(key);
   const dataHex = getRandomHexString(getRandomInt(2, 100));
   const sig = rabin.sign(dataHex, key);
@@ -82,7 +82,7 @@ function randomTest(rabin: RabinSignature, key: RabinPrivKey): boolean {
 describe("Random seed Key Generation, Signature Creation & Verification Tests", function () {
 
   const securityLevel = 6
-  const rabin = new RabinSignature(securityLevel)
+  const rabin = new Rabin(securityLevel)
 
   const randomValueTestCount = 10;
 

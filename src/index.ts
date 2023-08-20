@@ -1,2 +1,2 @@
-export { RabinSignature, RabinPrivKey, RabinPubKey, RabinSig } from './rabin'
+export { Rabin, RabinPrivateKey, RabinPublicKey, RabinSignature } from './rabin'
 export * from './utils'
