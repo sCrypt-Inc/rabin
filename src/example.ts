@@ -1,7 +1,6 @@
 import { Rabin, RabinPrivateKey, RabinPublicKey, RabinSignature } from "./rabin";
 
-const securityLevel = 6 // from 1(512bit) to 6(3072bit)
-const rabin = new Rabin(securityLevel)
+const rabin = new Rabin()
 
 const privKey: RabinPrivateKey = rabin.generatePrivKey()
 console.log('Rabin private key:', privKey)

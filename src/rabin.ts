@@ -37,7 +37,7 @@ export class Rabin {
    * RabinSignature
    * @param {*} securityLevel : multiple of 512 bits.
    */
-  constructor(securityLevel: number = 1) {
+  constructor(securityLevel: number = 6) {
     this.securityLevel = securityLevel < 1 ? 1 : securityLevel
   }
 

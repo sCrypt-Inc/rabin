@@ -18,8 +18,7 @@ describe("SecurityLevel Tests", () => {
 
 describe('Rabin sign and verify Tests', () => {
 
-  const securityLevel = 6
-  const rabin = new Rabin(securityLevel)
+  const rabin = new Rabin()
 
   const privKey = rabin.generatePrivKey()
   const pubKey = rabin.privKeyToPubKey(privKey)
@@ -81,8 +80,7 @@ function randomTest(rabin: Rabin, key: RabinPrivateKey): boolean {
 
 describe("Random seed Key Generation, Signature Creation & Verification Tests", function () {
 
-  const securityLevel = 6
-  const rabin = new Rabin(securityLevel)
+  const rabin = new Rabin()
 
   const randomValueTestCount = 10;
 
