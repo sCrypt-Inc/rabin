@@ -29,7 +29,7 @@ export type RabinPublicKey = bigint
 
 export class Rabin {
 
-  static readonly PaddingBuffer = Buffer.from('00', 'hex')
+  static readonly PaddingByte = Buffer.from('00', 'hex')
 
   securityLevel: number
 
@@ -126,7 +126,7 @@ export class Rabin {
       if (((signature * signature) % nRabin) === x) {
         break;
       }
-      dataBuffer = Buffer.concat([dataBuffer, Rabin.PaddingBuffer]);
+      dataBuffer = Buffer.concat([dataBuffer, Rabin.PaddingByte]);
       paddingByteCount++;
     }
     return { signature, paddingByteCount };
@@ -157,7 +157,7 @@ export class Rabin {
   generatePrivKeyFromSeed(seed: Buffer): RabinPrivateKey {
     const range = 2n ** BigInt(256 * this.securityLevel)
     let p = this.getPrimeNumber(this.rabinHashBytes(seed) % range);
-    let q = this.getPrimeNumber(this.rabinHashBytes(Buffer.from(seed.toString('hex') + '00', "hex")) % range);
+    let q = this.getPrimeNumber(this.rabinHashBytes(Buffer.concat([seed, Rabin.PaddingByte])) % range);
     return { p, q };
   }
 
@@ -194,11 +194,18 @@ export class Rabin {
 
     const { paddingByteCount, signature } = sig
     let dataBuffer = Buffer.from(dataHex, 'hex');
-    let paddingBuffer = Buffer.from('00'.repeat(paddingByteCount), 'hex');
+    let paddingBuffer = Buffer.alloc(paddingByteCount, Rabin.PaddingByte)
     let paddedDataBuffer = Buffer.concat([dataBuffer, paddingBuffer]);
     let dataHash = this.rabinHashBytes(paddedDataBuffer);
     let hashMod = dataHash % pubKey;
     return hashMod === (signature ** 2n % pubKey);
   }
 
+}
+
+export function toRabinSig(sig: RabinSignature): { s: bigint, padding: string } {
+  return {
+    s: sig.signature,
+    padding: Buffer.alloc(sig.paddingByteCount, Rabin.PaddingByte).toString('hex')
+  }
 }
