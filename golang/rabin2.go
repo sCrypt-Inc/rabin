@@ -7,6 +7,16 @@ import (
     "math/big"
 )
 
+// RabinSecurityLevel represents the security level for the Rabin signature algorithm.
+type RabinSecurityLevel struct {
+    Level int
+}
+
+// CalculateBits calculates the number of bits in the Rabin signature algorithm.
+func (r *RabinSecurityLevel) CalculateBits() int {
+    return r.Level * 512
+}
+
 // RabinPubKey is the public key for the Rabin signature algorithm.
 type RabinPubKey struct {
     N *big.Int
@@ -19,14 +29,14 @@ type RabinSig struct {
 }
 
 // GenerateRabinKeyPair generates a public and private key pair for the Rabin signature algorithm.
-func GenerateRabinKeyPair(securityLevel int) (*RabinPubKey, *big.Int, error) {
+func GenerateRabinKeyPair(securityLevel *RabinSecurityLevel) (*RabinPubKey, *big.Int, error) {
     // Generate two large prime numbers.
-    p, err := rand.Prime(rand.Reader, securityLevel)
+    p, err := rand.Prime(rand.Reader, securityLevel.CalculateBits())
     if err != nil {
         return nil, nil, err
     }
 
-    q, err := rand.Prime(rand.Reader, securityLevel)
+    q, err := rand.Prime(rand.Reader, securityLevel.CalculateBits())
     if err != nil {
         return nil, nil, err
     }
@@ -51,7 +61,7 @@ func SignRabin(msg []byte, privKey *big.Int, pubKey *RabinPubKey) (*RabinSig, er
     s := new(big.Int).Exp(new(big.Int).SetBytes(h), privKey, pubKey.N)
 
     // Pad the signature with random bytes.
-    u := make([]byte, securityLevel)
+    u := make([]byte, securityLevel.CalculateBits())
     rand.Read(u)
 
     return &RabinSig{s, u}, nil
@@ -70,8 +80,10 @@ func VerifyRabin(msg []byte, sig *RabinSig, pubKey *RabinPubKey) bool {
 }
 
 func main() {
+    // Create a new RabinSecurityLevel object with the default security level.
+    securityLevel := &RabinSecurityLevel{Level: 6}
+
     // Generate a public and private key pair.
-    securityLevel := 512 // The security level in bits.
     pubKey, privKey, err := GenerateRabinKeyPair(securityLevel)
     if err != nil {
         fmt.Println(err)
@@ -89,9 +101,8 @@ func main() {
     // Verify the signature.
     isValid := VerifyRabin(msg, sig, pubKey)
     if isValid {
-        fmt.Println("Rabin Signature is valid.")
+        fmt.Println("Signature is valid.")
     } else {
-        fmt.Println("Rabin Signature is invalid.")
+        fmt.Println("Signature is invalid.")
     }
 }
-
