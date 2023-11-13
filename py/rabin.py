@@ -13,6 +13,16 @@ def gcd(a: int, b: int) -> int:
     return a
 
 
+def gen_prime_pair(seed) -> tuple:
+    if isinstance(seed, str):
+        seed = bytes.fromhex(seed)
+
+    priv_range = 2 ** (256 * SECURITY_LEVEL)
+    p = next_prime(hash_to_int(seed) % priv_range)
+    q = next_prime(hash_to_int(seed + b'\x00') % priv_range)
+    return (p, q)
+
+
 def next_prime(p: int) -> int:
     while p % 4 != 3:
         p = p + 1
@@ -81,45 +91,16 @@ def read_number(filename: str) -> int:
         return int(f.read())
 
 
-def sign(hex_message: str) -> tuple:
-    p = read_number('p')
-    q = read_number('q')
+def sign(hex_message: str, p=None, q=None) -> tuple:
+    if not p:
+        p = read_number('p')
+    if not q:
+        q = read_number('q')
     return sign_rabin(p, q, bytes.fromhex(hex_message))
 
 
-def verify(hex_message: str, padding: str, hex_signature: str):
-    n = read_number('n')
+def verify(hex_message: str, padding: str, hex_signature: str, n=None):
+    if not n:
+        n = read_number('n')
     return verify_rabin(n, bytes.fromhex(hex_message), int(hex_signature, 16), int(padding))
 
-
-if __name__ == '__main__':
-    print('\n rabin signature - sCrypt Inc 2020 adapted from Scheerer - all rights reserved')
-    print('\n rabin signature - copyright Scheerer Software 2018 - all rights reserved')
-
-    print('\n\nFirst parameter is V (Verify) or S (Sign) or G (Generate)')
-    print('\n verify signature (2 parameters):')
-    print('   > python rabin.py V <hex message> <padding> <digital signature>')
-    print('\n create signature S (2 parameter):')
-    print('   > python rabin.py S <hex message>')
-    print('\n generate key pair G (2 parameter):')
-    print('   > python rabin.py G <hex seed>')
-
-    print(f'\n\nnumber of parameters is {len(sys.argv) - 1}')
-
-    if len(sys.argv) == 5 and sys.argv[1] == 'V':
-        print(f'\n result of verification: {verify(sys.argv[2], sys.argv[3], sys.argv[4])}')
-
-    if len(sys.argv) == 3 and sys.argv[1] == 'S':
-        sig, pad = sign(sys.argv[2])
-        print(f'\n padding = {pad}')
-        print(f' digital signature = {hex(sig)}')
-
-    if len(sys.argv) == 3 and sys.argv[1] == 'G':
-        print('\n generate primes ... ')
-        priv_range = 2 ** (256 * SECURITY_LEVEL)
-        p_rabin = next_prime(hash_to_int(bytes.fromhex(sys.argv[2])) % priv_range)
-        q_rabin = next_prime(hash_to_int(bytes.fromhex(sys.argv[2] + '00')) % priv_range)
-        write_number(p_rabin, 'p')
-        write_number(q_rabin, 'q')
-        write_number(p_rabin * q_rabin, 'n')
-        print(f'\n n_rabin = {hex(p_rabin * q_rabin)}')
