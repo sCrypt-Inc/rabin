@@ -6,6 +6,23 @@ node_js:
   - 19
 
 before_install:
+  - |
+    if [ "$TRAVIS_OS_NAME" = "linux" ]; then
+      wget https://golang.org/dl/go1.18.linux-amd64.tar.gz
+      sudo tar -xvf go1.18.linux-amd64.tar.gz
+      sudo mv go /usr/local
+      export GOROOT=/usr/local/go
+      export PATH=$GOROOT/bin:$PATH
+    elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
+      wget https://golang.org/dl/go1.18.darwin-amd64.tar.gz
+      sudo tar -xvf go1.18.darwin-amd64.tar.gz
+      sudo mv go /usr/local
+      export GOROOT=/usr/local/go
+      export PATH=$GOROOT/bin:$PATH
+    elif [ "$TRAVIS_OS_NAME" = "windows" ]; then
+      choco install golang
+    fi
+  - pip3 install pytest
 
 os:
   - linux
@@ -35,7 +52,9 @@ jobs:
       os: windows
 
 script:
-  - pip install pytest
   - npm i
-  - npm run test-all-lang
+  - npm t
+  - python3 -m pytest py/test_rabin.py
+  - cd golang/
+  - go test
 

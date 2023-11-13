@@ -8,8 +8,7 @@
     "build": "rimraf dist && tsc",
     "test": "npm run build && mocha",
     "example": "npm run build && node dist/example.js",
-    "prepublishOnly": "npm run build",
-    "test-all-lang": "npm run build && mocha && pytest -s py/test_rabin.py"
+    "prepublishOnly": "npm run build"
   },
   "repository": {
     "type": "git",
