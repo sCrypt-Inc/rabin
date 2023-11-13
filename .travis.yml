@@ -52,7 +52,6 @@ jobs:
       os: windows
 
 script:
-  - npm i
   - npm t
   - python3 -m pytest py/test_rabin.py
   - cd golang/
