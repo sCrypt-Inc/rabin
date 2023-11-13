@@ -35,6 +35,7 @@ jobs:
       os: windows
 
 script:
+  - pip install pytest
   - npm i
   - npm run test-all-lang
 
