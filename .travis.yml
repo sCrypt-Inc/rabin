@@ -21,6 +21,8 @@ before_install:
       export PATH=$GOROOT/bin:$PATH
     elif [ "$TRAVIS_OS_NAME" = "windows" ]; then
       choco install golang
+      choco install python
+      python -m pip install --upgrade pip
     fi
   - pip3 install pytest
 
