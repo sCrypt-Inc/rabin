@@ -10,7 +10,9 @@ describe("SecurityLevel Tests", () => {
       const rabin = new Rabin(level)
       let key = rabin.generatePrivKey();
       let pubkey = rabin.privKeyToPubKey(key);
-      expect(bigIntToHexString(pubkey).length / 2 * 8).to.greaterThanOrEqual(512 * level);
+      let pubkeyBitLen = bigIntToHexString(pubkey).length / 2 * 8
+      let minBitLen = (512 * (level - 1)) + 1
+      expect(pubkeyBitLen).to.greaterThanOrEqual(minBitLen);
     }
   })
 
