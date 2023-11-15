@@ -1,61 +1,37 @@
-dist: focal
-language: node_js
-node_js:
-  - 16
-  - 18
-  - 19
-
-before_install:
-  - |
-    if [ "$TRAVIS_OS_NAME" = "linux" ]; then
-      wget https://golang.org/dl/go1.18.linux-amd64.tar.gz
-      sudo tar -xvf go1.18.linux-amd64.tar.gz
-      sudo mv go /usr/local
-      export GOROOT=/usr/local/go
-      export PATH=$GOROOT/bin:$PATH
-    elif [ "$TRAVIS_OS_NAME" = "osx" ]; then
-      wget https://golang.org/dl/go1.18.darwin-amd64.tar.gz
-      sudo tar -xvf go1.18.darwin-amd64.tar.gz
-      sudo mv go /usr/local
-      export GOROOT=/usr/local/go
-      export PATH=$GOROOT/bin:$PATH
-    elif [ "$TRAVIS_OS_NAME" = "windows" ]; then
-      choco install golang
-      choco install python
-      export PATH=/C/ProgramData/chocolatey/lib/mingw/tools/install/mingw64/opt/bin/:$PATH
-    fi
-  - pip3 install pytest
-
-os:
-  - linux
-  - osx
-  - windows
-
-osx_image:
-  - xcode9.4
-  - xcode14
+language: minimal
 
 jobs:
-  exclude:
-    - osx_image: xcode9.4
-      node_js: 18
-    - osx_image: xcode9.4
-      node_js: 19
-    - osx_image: xcode14
-      node_js: 16
-    # Only test on linux for regular test jobs
-    - if: branch != master
-      node_js: 18
-    - if: branch != master
-      node_js: 19
-    - if: type = pull_request
-      os: osx
-    - if: type = pull_request
-      os: windows
+  include:
+    - name: "Node.js Tests"
+      language: node_js
+      node_js: "16"
+      os:
+        - linux
+        - osx
+        - windows
+      script:
+        - npm ci
+        - npm t
 
-script:
-  - npm t
-  - python3 -m pytest py/test_rabin.py
-  - cd golang/
-  - go test
+    - name: "Golang Tests"
+      language: go
+      go: "1.14"
+      os:
+        - linux
+        - osx
+        - windows
+      script:
+        - cd golang/
+        - go test 
+
+    - name: "Python Tests"
+      language: python
+      python: "3.8"
+      os:
+        - linux
+        - osx
+        - windows
+      script:
+        - pip install pytest
+        - python -m pytest py/test_rabin.py
 
