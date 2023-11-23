@@ -1,4 +1,4 @@
-import { Rabin, RabinPrivateKey, RabinPublicKey, RabinSignature } from "./rabin";
+import { Rabin, RabinPrivateKey, RabinPublicKey, RabinSignature, deserialize, serialize } from "./rabin";
 
 const rabin = new Rabin()
 
@@ -16,5 +16,14 @@ console.log('dataHex:', dataHex)
 const sig: RabinSignature = rabin.sign(dataHex, privKey)
 console.log('Rabin signature result:', sig)
 
-const verified = rabin.verify(dataHex, sig, pubKey)
+let verified = rabin.verify(dataHex, sig, pubKey)
 console.log('Signature verified:', verified)
+
+const serializedSig = serialize(sig)
+console.log('Serialized signature:', serializedSig)
+
+const deserializedSig = deserialize(serializedSig)
+console.log('Deserialized signature:', deserializedSig)
+
+verified = rabin.verify(dataHex, deserializedSig, pubKey)
+console.log('Signature verified after serialization and deserialization:', verified)
