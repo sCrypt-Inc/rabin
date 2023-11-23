@@ -1,6 +1,6 @@
 {
   "name": "rabinsig",
-  "version": "4.2.0",
+  "version": "4.2.1",
   "description": "A JavaScript Rabin Signature Library.",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
