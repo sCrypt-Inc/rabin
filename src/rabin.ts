@@ -3,7 +3,7 @@ A Rabin Signature JavaScript module adapted
 from: https://github.com/scrypt-sv/rabin/blob/master/rabin.py
 */
 import { toBigIntLE } from 'bigint-buffer';
-import { isHexString, bigIntAbsoluteValue } from './utils';
+import { isHexString, bigIntAbsoluteValue, toBufferLE } from './utils';
 import { createHash, randomBytes } from 'crypto'
 
 /**
@@ -203,9 +203,32 @@ export class Rabin {
 
 }
 
+/**
+ * convert signature to type `RabinSig` defined in `scrypt-ts-lib`
+ */
 export function toRabinSig(sig: RabinSignature): { s: bigint, padding: string } {
   return {
     s: sig.signature,
     padding: Buffer.alloc(sig.paddingByteCount, Rabin.PaddingByte).toString('hex')
+  }
+}
+
+/**
+ * serialize signature
+ */
+export function serialize(sig: RabinSignature): { s: string, padding: string } {
+  return {
+    s: toBufferLE(sig.signature).toString('hex'),
+    padding: '00'.repeat(sig.paddingByteCount)
+  }
+}
+
+/**
+ * deserialize signature
+ */
+export function deserialize(sig: { s: string, padding: string }): RabinSignature {
+  return {
+    signature: BigInt('0x' + Buffer.from(sig.s, 'hex').reverse().toString('hex')),
+    paddingByteCount: sig.padding.length / 2,
   }
 }

@@ -105,3 +105,19 @@ export function getRandomHexString(len: number): string {
 export function bigIntAbsoluteValue(value: bigint): bigint {
     return value > 0n ? value : -value
 }
+
+export function toBufferBE(
+    num: bigint | number,
+    size: number | undefined = undefined,
+) {
+    const hex = num.toString(16);
+    const byteLength = Math.max(size || 0, Math.ceil(hex.length / 2));
+    return Buffer.from(hex.padStart(byteLength * 2, '0'), 'hex');
+}
+
+export function toBufferLE(
+    num: bigint | number,
+    size: number | undefined = undefined,
+) {
+    return toBufferBE(num, size).reverse();
+}
